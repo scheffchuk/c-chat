@@ -4,7 +4,7 @@
 - [] Sidebar
 - [] ChatBox(messages, input, copy, upvote, branchoff...)
 - [] Theme Toggle
-- [] Artifact
+- [] Artifacts
 - [] Setting page
 
 - [] Routes
