@@ -26,6 +26,7 @@ export function AppSidebar() {
         <SidebarHeader>
           <SidebarMenu>
             <div className="flex flex-row items-center justify-between">
+              <div></div>
               <Link
                 href="/"
                 className="flex flex-row items-center gap-3"
