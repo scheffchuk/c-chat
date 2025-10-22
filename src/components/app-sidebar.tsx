@@ -62,9 +62,9 @@ export function AppSidebar() {
         </SidebarHeader>
         <SidebarContent>
           {/* <SidebarHistory /> */}
-          <SidebarFooter>
+          {/* <SidebarFooter>
             <User2Icon className="size-4" />
-          </SidebarFooter>
+          </SidebarFooter> */}
         </SidebarContent>
       </Sidebar>
     </>
