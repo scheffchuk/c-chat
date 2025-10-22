@@ -2,13 +2,14 @@
 
 import React from 'react'
 import { ChatHeader } from './chat-header';
+import PureMessages from './messages';
 
 export default function Chat() {
   return (
     <>
     <div className='overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background'>
       <ChatHeader chatId={""} selectedVisibilityType={"private"} isReadonly={false} />
-      {/* <Messages/> */}
+      <PureMessages messages={[]}/>
       {/* TODO: MultimodalInput */}
       {/* TODO: Artifacts */}
     </div>

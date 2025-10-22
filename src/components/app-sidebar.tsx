@@ -16,7 +16,7 @@ import { PlusIcon, User2Icon } from "lucide-react";
 
 export function AppSidebar() {
   const router = useRouter();
-  const { setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   // TODO: handle delete chat?
 
@@ -54,7 +54,7 @@ export function AppSidebar() {
                       <PlusIcon />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent align="end">New Chat</TooltipContent>
+                  {!isMobile && <TooltipContent align="end">New Chat</TooltipContent>}
                 </Tooltip>
               </div>
             </div>
