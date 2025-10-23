@@ -30,7 +30,7 @@ function PureChatHeader({ chatId, selectedVisibilityType, isReadonly }: Props) {
             router.push("/");
             router.refresh();
           }}
-          variant="outline"
+          variant="ghost"
         >
           <PlusIcon />
           <span className="sr-only">New Chat</span>

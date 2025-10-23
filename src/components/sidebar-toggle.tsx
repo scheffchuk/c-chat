@@ -17,7 +17,7 @@ export function SidebarToggle({
           className={cn("h-8 md:h-fit md:px-2", className)}
           data-testid="sidebar-toggle-button"
           onClick={toggleSidebar}
-          variant="outline"
+          variant="ghost"
         >
           <Sidebar />
           <span className="sr-only">Toggle Sidebar</span>
