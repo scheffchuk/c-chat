@@ -6,13 +6,38 @@ A modern web application that enables users to interact with multiple AI models 
 
 While the demand for multi-model AI chat interfaces is high, existing solutions often suffer from high costs, closed ecosystems, or performance issues. C Chat addresses these limitations by providing an intuitive, vendor lock-in free platform that combines educational value with practical utility.
 
+## Development Status
+
+**🚧 Currently in Active Development**
+
+This project is under active development as a graduation assignment. The frontend UI is largely complete, but backend integration and AI model connectivity are still in progress.
+
+### ✅ Completed Features
+- Modern responsive UI with sidebar navigation
+- Multimodal input interface (text, voice, file attachments)
+- Theme switching support (light/dark mode)
+- Multi-model selector UI (ready for backend integration)
+- Chat interface layout and components
+
+### 🚧 In Progress
+- Backend schema and API endpoints
+- Authentication system integration
+- AI model connectivity
+- Message persistence and chat history
+
+### 📋 Planned Features
+- Message actions (copy, upvote, branch off)
+- Chat artifacts and file handling
+- Settings page and user preferences
+- Public/private chat visibility controls
+
 ## Key Features
 
-- **Multi-Model Support**: Switch between and compare different AI models seamlessly
-- **Intuitive UX**: Clean, responsive interface built with modern web technologies
-- **Vendor Independence**: No single provider lock-in, giving users flexibility
-- **Performance Focused**: Optimized for speed and reliability
-- **Privacy Conscious**: User data handling with transparency
+- **Modern UI**: Clean, responsive interface with sidebar navigation and theme switching
+- **Multimodal Input**: Support for text, voice, and file attachments
+- **Multi-Model Ready**: UI prepared for multiple AI model integration
+- **Developer Friendly**: Built with modern web technologies and TypeScript
+- **Responsive Design**: Optimized for desktop and mobile experiences
 
 ## Target Audience
 
@@ -28,12 +53,21 @@ While the demand for multi-model AI chat interfaces is high, existing solutions 
 - **React 19** - UI library
 - **TypeScript** - Type safety and developer experience
 - **Tailwind CSS** - Utility-first styling
+- **Radix UI** - Accessible component primitives
+- **ai-elements** - AI-specific UI components
+- **Motion** - Animation library (Framer Motion)
 
 ### Backend & Services
-- **Convex** - Real-time backend platform
-- **Better Auth** - Authentication system
-- **AI SDK** - AI model integration
-- **AI Gateway** - Model routing and management
+- **Convex** - Real-time backend platform (configured but not yet integrated)
+- **Clerk** - Authentication system (planned)
+- **AI SDK** - AI model integration (planned)
+- **AI Gateway** - Model routing and management (planned)
+
+### Utilities
+- **usehooks-ts** - TypeScript React hooks
+- **nanoid** - Unique ID generation
+- **class-variance-authority** - Component variant management
+- **next-themes** - Theme switching
 
 ### Deployment
 - **Vercel** - Hosting and deployment platform
@@ -74,14 +108,41 @@ pnpm dev
 
 ```
 src/
-├── app/                 # Next.js App Router
-│   ├── layout.tsx      # Root layout
-│   ├── page.tsx        # Home page
-│   └── globals.css     # Global styles
-convex/                 # Convex backend
-├── _generated/         # Auto-generated files
-└── README.md          # Convex setup guide
+├── app/                    # Next.js App Router
+│   ├── (chat)/            # Chat route group
+│   │   ├── layout.tsx     # Chat layout with sidebar
+│   │   ├── page.tsx       # Main chat page
+│   │   └── chat/[id]/     # Individual chat pages
+│   ├── layout.tsx         # Root layout with theme provider
+│   ├── page.tsx           # Home page redirect
+│   └── globals.css        # Global styles
+├── components/             # React components
+│   ├── ai-elements/       # AI-specific UI components
+│   ├── ui/               # Reusable UI components (Radix-based)
+│   ├── app-sidebar.tsx   # Main sidebar navigation
+│   ├── chat.tsx          # Main chat interface
+│   ├── chat-header.tsx   # Chat header with controls
+│   ├── messages.tsx      # Message display component
+│   ├── multimodal-input.tsx # Input with attachments/voice
+│   └── greeting.tsx      # Landing page greeting
+├── hooks/                 # Custom React hooks
+├── lib/                   # Utility functions
+└── providers/             # Context providers
+convex/                    # Convex backend (not yet configured)
+├── _generated/           # Auto-generated files
+└── README.md            # Convex setup guide
 ```
+
+## Current Limitations
+
+⚠️ **Important**: This is a development version with the following limitations:
+
+- **No Backend Integration**: Convex is configured but not connected to the UI
+- **No Authentication**: User management and authentication not yet implemented
+- **No AI Model Connectivity**: Model selector is UI-only, no actual AI integration
+- **No Message Persistence**: Messages are not saved or retrieved
+- **No Chat History**: Previous conversations are not stored
+- **Limited Functionality**: Copy, upvote, and branching features not implemented
 
 ## Development
 
@@ -89,3 +150,7 @@ convex/                 # Convex backend
 - **Build**: `pnpm build` - Create production build
 - **Lint**: `pnpm lint` - Run Biome linter
 - **Format**: `pnpm format` - Format code with Biome
+
+## Contributing
+
+This project is currently in active development as a graduation assignment. The frontend UI is largely complete, and the next phase involves backend integration and AI model connectivity.

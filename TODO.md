@@ -1,12 +1,16 @@
 ### Frontend
-- [] Homepage
+- [x] Homepage
 - [] Signin/Signout
-- [] Sidebar
-- [] ChatBox(messages, input, copy, upvote, branchoff...)
+- [x] Sidebar
+- [] ChatBox
+  -[] messages, 
+  -[x] input, 
+  -[] copy, 
+  -[] upvote, 
+  -[] branchoff...
 - [] Theme Toggle
 - [] Artifacts
 - [] Setting page
-
 - [] Routes
 
 ### Backend

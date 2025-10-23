@@ -8,7 +8,6 @@ import {
   useRef,
 } from "react";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
-import Greeting from "./greeting";
 import {
   PromptInput,
   PromptInputBody,
@@ -30,7 +29,7 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "./ai-elements/prompt-input";
-import { ArrowUpIcon, GlobeIcon } from "lucide-react";
+import { GlobeIcon } from "lucide-react";
 
 const models = [
   { id: 'gpt-4', name: 'GPT-4' },
