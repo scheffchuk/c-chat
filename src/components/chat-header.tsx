@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useSidebar } from "./ui/sidebar";
+import { useHoverSidebar } from "./hover-sidebar-context";
 import { useWindowSize } from "usehooks-ts";
 import { Button } from "./ui/button";
 import { PlusIcon } from "lucide-react";
@@ -16,14 +16,13 @@ interface Props {
 
 function PureChatHeader({ chatId, selectedVisibilityType, isReadonly }: Props) {
   const router = useRouter();
-  const { open } = useSidebar();
+  const { isCollapsed } = useHoverSidebar();
 
   const { width: windowWidth } = useWindowSize();
 
   return (
     <header className="sticky top-0 items-center space-x-2 gap-2 bg-background px-2 py-1.5 md:px-4">
-      <SidebarToggle />
-      {(!open || windowWidth < 768) && (
+      {(isCollapsed || windowWidth < 768) && (
         <Button
           className="order-2 ml-auto h-8 px-2 md:order-1 md:ml-0 md:h-fit md:px-2"
           onClick={() => {
