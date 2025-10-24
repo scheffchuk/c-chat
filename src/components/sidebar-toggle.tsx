@@ -16,12 +16,12 @@ export function SidebarToggle({
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          className={cn("sidebar-icon-trigger h-8 md:h-fit md:px-2", className)}
+          className={cn("sidebar-icon-trigger h-8 md:h-fit md:px-4", className)}
           data-testid="sidebar-toggle-button"
           onClick={toggleCollapsed}
           variant="ghost"
         >
-          <SidebarIcon isCollapsed={isCollapsed} className="text-muted-foreground" />
+          <SidebarIcon isCollapsed={isCollapsed} className="text-muted-foreground size-6" />
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
       </TooltipTrigger>
