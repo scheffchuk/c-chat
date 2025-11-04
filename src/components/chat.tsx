@@ -4,6 +4,9 @@ import React from "react";
 import { ChatHeader } from "./chat-header";
 import PureMessages from "./messages";
 import MultimodalInput from "./multimodal-input";
+import { Unauthenticated } from "convex/react";
+import { Authenticated } from "convex/react";
+import { SignInButton } from "@clerk/nextjs";
 
 export default function Chat() {
   return (
@@ -16,7 +19,12 @@ export default function Chat() {
         /> */}
         <PureMessages messages={[]} />
         {/* TODO: Artifacts */}
-        <MultimodalInput input={""} setInput={() => {}} messages={[]} />
+        <Authenticated>
+          <MultimodalInput input={""} setInput={() => {}} messages={[]} />
+        </Authenticated>
+        <Unauthenticated>
+          <SignInButton mode="modal" />
+        </Unauthenticated>
       </div>
     </>
   );

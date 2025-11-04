@@ -2,12 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useHoverSidebar } from "./hover-sidebar-context";
-import { 
-  PlusIcon, 
-  SearchIcon,
-  ClockIcon,
-  User,
-} from "lucide-react";
+import { PlusIcon, SearchIcon, ClockIcon, User } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import {
   Sheet,
@@ -16,10 +11,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "./ui/sheet";
+import { UserButton } from "@clerk/nextjs";
 
 export function AppSidebar() {
   const router = useRouter();
-  const { isCollapsed, isMobile, openMobile, setOpenMobile } = useHoverSidebar();
+  const { isCollapsed, isMobile, openMobile, setOpenMobile } =
+    useHoverSidebar();
 
   // TODO: handle delete chat?
 
@@ -106,11 +103,9 @@ export function AppSidebar() {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="border-border space-y-1 border-t pt-2">
-        <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-100">
-          <User size={14} />
-          <span>Kid Anonymous</span>
-        </button>
+      <div className="border-border space-y-1 border-t pt-2 flex items-center justify-end">
+        <UserButton showName={true} />
+
         {/* <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-100">
           <SettingsIcon size={14} />
           <span>Settings</span>
@@ -128,9 +123,7 @@ export function AppSidebar() {
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Navigation and chat history</SheetDescription>
           </SheetHeader>
-          <div className="flex h-full flex-col gap-2">
-            {sidebarContent}
-          </div>
+          <div className="flex h-full flex-col gap-2">{sidebarContent}</div>
         </SheetContent>
       </Sheet>
     );
@@ -155,9 +148,7 @@ export function AppSidebar() {
         )}
       >
         {/* Content inside the hoverable panel */}
-        <div className="flex h-full flex-col gap-2">
-          {sidebarContent}
-        </div>
+        <div className="flex h-full flex-col gap-2">{sidebarContent}</div>
       </div>
     </div>
   );
