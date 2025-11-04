@@ -1,6 +1,8 @@
 import {motion} from "motion/react"
+import { useUser } from "@clerk/nextjs";
 
 export default function Greeting() {
+  const { user } = useUser();
   return (
     <div className="mx-auto mt-4 flex size-full max-w-3xl flex-col justiy-center px-4 md:mt-16 md:px-8" key="overview">
       <motion.div animate={{ opacity: 1, y: 0}}
@@ -8,7 +10,7 @@ export default function Greeting() {
       exit={{opacity: 0, y: 10}}
       initial={{ opacity: 0, y: 10}}
       transition={{ delay: 0.5}}>
-        Hi there!
+        Hi {user?.firstName}!
       </motion.div>
       <motion.div
       animate={{opacity: 1, y: 0}}

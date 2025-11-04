@@ -2,21 +2,14 @@ import { HoverSidebarProvider } from "@/components/hover-sidebar-context";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarToggle } from "@/components/sidebar-toggle";
 import React from "react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import NavBar from "@/components/nav-bar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <HoverSidebarProvider>
-      <main className="bg-background relative flex h-screen max-h-screen flex-col overflow-y-hidden p-2 transition-all duration-100 ease-in-out">
+      <main className="bg-background relative flex h-screen max-h-screen flex-col overflow-y-hidden transition-all duration-100 ease-in-out">
         <div className="flex h-full w-full flex-col">
-          <div className="flex-row items-center justify-between gap-4 p-4 hidden md:flex">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary h-6 w-[1px] -skew-12" />
-              <p className="text-h3 text-red-400">C Chat</p>
-            </div>
-            <ThemeToggle />
-          </div>
-
+          <NavBar />
           <div className="group flex min-h-0 w-full flex-1 flex-col md:flex-row gap-4 p-2 transition-all duration-100 ease-in-out">
             <AppSidebar />
             <div className="bg-background border-foreground/30 h-full w-full rounded-xl border transition-all duration-100 ease-in-out flex flex-col">

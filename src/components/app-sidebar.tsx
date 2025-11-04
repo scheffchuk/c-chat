@@ -103,7 +103,7 @@ export function AppSidebar() {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="border-border space-y-1 border-t pt-2 flex items-center justify-end">
+      <div className="border-border py-3 border-t flex items-center justify-end">
         <UserButton showName={true} />
 
         {/* <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-100">
