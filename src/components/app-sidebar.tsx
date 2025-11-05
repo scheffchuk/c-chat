@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useHoverSidebar } from "./hover-sidebar-context";
-import { PlusIcon, SearchIcon, ClockIcon, User } from "lucide-react";
+import { PlusIcon, SearchIcon, ClockIcon, User, Variable } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import {
   Sheet,
@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from "./ui/sheet";
 import { UserButton } from "@clerk/nextjs";
+import { ThemeToggle } from "./theme-toggle";
 
 export function AppSidebar() {
   const router = useRouter();
@@ -104,7 +105,16 @@ export function AppSidebar() {
 
       {/* Bottom Actions */}
       <div className="border-border py-3 border-t flex items-center justify-end">
-        <UserButton showName={true} />
+        <UserButton
+          showName={true}
+          appearance={{
+            elements: {
+              userButtonTrigger: {
+                color: "var(--foreground)",
+              },
+            },
+          }}
+        />
 
         {/* <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-100">
           <SettingsIcon size={14} />
@@ -118,10 +128,11 @@ export function AppSidebar() {
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-        <SheetContent side="left" className="bg-background w-[272px] p-4">
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Navigation and chat history</SheetDescription>
+        <SheetContent side="left" className="bg-background w-[272px] p-2">
+          <SheetHeader className="flex flex-row items-center justify-between px-0 py-1">
+            <SheetTitle className="text-h3 text-red-400 px-2">C Chat</SheetTitle>
+            <SheetDescription className="sr-only">Navigation and chat history</SheetDescription>
+            <ThemeToggle/>
           </SheetHeader>
           <div className="flex h-full flex-col gap-2">{sidebarContent}</div>
         </SheetContent>
