@@ -63,11 +63,11 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
         {/* TweakCN Live Preview */}
-        {/* <script
+        <script
           async
           crossOrigin="anonymous"
           src="https://tweakcn.com/live-preview.min.js"
-        /> */}
+        />
       </head>
       <body className="antialiased">
         <ClerkProvider>

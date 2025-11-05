@@ -109,7 +109,7 @@ export default function MultimodalInput({
   }, [input, adjustHeight]);
 
   return (
-    <div className={cn("relative flex w-full flex-col gap-4 p-4", className)}>
+    <div className={cn("relative flex w-full flex-col gap-4", className)}>
       {/* {messages.length === 0 && <Suggestions />} */}
 
       <PromptInput
