@@ -18,18 +18,21 @@ This project is under active development as a graduation assignment. The fronten
 - Theme switching support (light/dark mode)
 - Multi-model selector UI (ready for backend integration)
 - Chat interface layout and components
+- Homepage with greeting component
 
 ### 🚧 In Progress
-- Backend schema and API endpoints
-- Authentication system integration
-- AI model connectivity
+- Backend schema (Users, Messages, Chats)
+- Authentication system (Clerk)
+- AI SDK API endpoint integration
 - Message persistence and chat history
 
 ### 📋 Planned Features
+- Sign in/Sign out functionality
 - Message actions (copy, upvote, branch off)
 - Chat artifacts and file handling
 - Settings page and user preferences
 - Public/private chat visibility controls
+- Complete routing system
 
 ## Key Features
 
@@ -137,12 +140,12 @@ convex/                    # Convex backend (not yet configured)
 
 ⚠️ **Important**: This is a development version with the following limitations:
 
-- **No Backend Integration**: Convex is configured but not connected to the UI
-- **No Authentication**: User management and authentication not yet implemented
+- **No Backend Integration**: Convex configured but not yet connected to UI
+- **No Authentication**: User management and sign in/out not implemented
 - **No AI Model Connectivity**: Model selector is UI-only, no actual AI integration
-- **No Message Persistence**: Messages are not saved or retrieved
-- **No Chat History**: Previous conversations are not stored
-- **Limited Functionality**: Copy, upvote, and branching features not implemented
+- **No Message Persistence**: Messages not saved or retrieved
+- **No Chat History**: Previous conversations not stored
+- **Limited Message Actions**: Copy, upvote, and branch off features not implemented
 
 ## Development
 

@@ -1,19 +1,44 @@
-### Frontend
-- [x] Homepage
-- [] Signin/Signout
-- [x] Sidebar
-- [] ChatBox
-  -[] messages, 
-  -[x] input, 
-  -[] copy, 
-  -[] upvote, 
-  -[] branchoff...
-- [] Theme Toggle
-- [] Artifacts
-- [] Setting page
-- [] Routes
+## Frontend
 
-### Backend
-- [] Schema(Users, Messages, Chat)
-- [] Authentications (Clerk or BetterAuth)
-- [] AI SDK api endpoint
+### Completed
+- [x] Homepage with greeting component
+- [x] Sidebar navigation
+- [x] Theme toggle (light/dark mode)
+- [x] Multimodal input (text, voice, file attachments)
+- [x] Chat interface layout
+- [x] Multi-model selector UI
+
+### In Progress
+- [x] Sign in/Sign out functionality
+- [ ] Message display component
+  - [ ] Message rendering
+  - [ ] Message actions (copy, upvote, branch off)
+- [ ] Chat routing system
+  - [ ] Individual chat pages
+  - [ ] Chat history navigation
+
+### Planned
+- [ ] Artifacts viewer/handler
+- [ ] Settings page
+  - [ ] User preferences
+  - [ ] Chat visibility controls (public/private)
+
+## Backend
+
+### In Progress
+- [ ] Database schema
+  - [ ] Users table
+  - [ ] Messages table
+  - [ ] Chats table
+- [ ] Authentication integration
+  - [x] Evaluate Clerk vs BetterAuth
+  - [x] Implement chosen solution
+- [ ] AI SDK integration
+  - [ ] API endpoint setup
+  - [ ] Model connectivity
+  - [ ] Message persistence
+
+### Planned
+- [ ] Real-time message sync
+- [ ] Chat history retrieval
+- [ ] File upload handling

@@ -19,7 +19,7 @@ export default function Greeting() {
       initial={{opacity:0, y:10}}
       transition={{delay: 0.6}}      
       >
-        {user?  `How can I help you today,` : "You have to login first."}
+        {user?  `How can I help you today?` : "You have to login first."}
       </motion.div>
     </div>
   )
