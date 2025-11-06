@@ -2,6 +2,7 @@ import { AuthConfig } from "convex/server";
 
 // https://docs.convex.dev/auth/clerk#nextjs
 // https://docs.convex.dev/auth/database-auth
+// https://github.com/get-convex/convex-demos/blob/main/users-and-clerk/convex/users.ts
 
 export default {
   providers: [
