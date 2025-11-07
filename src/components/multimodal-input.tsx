@@ -30,6 +30,7 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "./ai-elements/prompt-input";
+import { motion } from "motion/react";
 
 const models = [
   { id: "gpt-4", name: "GPT-4" },
@@ -109,7 +110,12 @@ export default function MultimodalInput({
   }, [input, adjustHeight]);
 
   return (
-    <div className={cn("relative flex w-full flex-col gap-4", className)}>
+    <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 10 }}
+        transition={{ delay: 0.5 }}
+       className={cn("relative flex w-full flex-col gap-4", className)}>
       {/* {messages.length === 0 && <Suggestions />} */}
 
       <PromptInput
@@ -161,6 +167,6 @@ export default function MultimodalInput({
           <PromptInputSubmit className="!h-8" status={"submitted"} />
         </PromptInputFooter>
       </PromptInput>
-    </div>
+    </motion.div>
   );
 }
