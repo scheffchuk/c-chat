@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# package manager lockfiles (using pnpm only)
+package-lock.json
+
 # testing
 /coverage
 

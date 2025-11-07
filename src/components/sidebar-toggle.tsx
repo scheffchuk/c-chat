@@ -1,7 +1,7 @@
 "use client";
 
 import { ComponentProps } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Tooltip, TooltipTrigger } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { SidebarIcon } from "./sidebar-icon";
