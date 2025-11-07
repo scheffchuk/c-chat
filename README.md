@@ -13,20 +13,25 @@ While the demand for multi-model AI chat interfaces is high, existing solutions 
 This project is under active development as a graduation assignment. The frontend UI is largely complete, but backend integration and AI model connectivity are still in progress.
 
 ### ✅ Completed Features
+
 - Modern responsive UI with sidebar navigation
 - Multimodal input interface (text, voice, file attachments)
 - Theme switching support (light/dark mode)
 - Multi-model selector UI (ready for backend integration)
 - Chat interface layout and components
 - Homepage with greeting component
+- Convex backend schema (Users, Messages, Chats)
+- Convex client integration with React
+- Clerk authentication provider integration
 
 ### 🚧 In Progress
-- Backend schema (Users, Messages, Chats)
-- Authentication system (Clerk)
-- AI SDK API endpoint integration
-- Message persistence and chat history
+
+- AI SDK API endpoint with streaming (resumable-stream scaffold)
+- Message persistence UI wiring
+- Authentication flows and screens
 
 ### 📋 Planned Features
+
 - Sign in/Sign out functionality
 - Message actions (copy, upvote, branch off)
 - Chat artifacts and file handling
@@ -39,6 +44,8 @@ This project is under active development as a graduation assignment. The fronten
 - **Modern UI**: Clean, responsive interface with sidebar navigation and theme switching
 - **Multimodal Input**: Support for text, voice, and file attachments
 - **Multi-Model Ready**: UI prepared for multiple AI model integration
+- **Real-time Backend**: Convex for real-time data sync and backend operations
+- **Authentication**: Clerk provider integrated (UI flows pending)
 - **Developer Friendly**: Built with modern web technologies and TypeScript
 - **Responsive Design**: Optimized for desktop and mobile experiences
 
@@ -52,55 +59,74 @@ This project is under active development as a graduation assignment. The fronten
 ## Tech Stack
 
 ### Frontend
-- **Next.js 15** - React framework with App Router
-- **React 19** - UI library
+
+- **Next.js 15.5.6** - React framework with App Router
+- **React 19.1** - UI library
 - **TypeScript** - Type safety and developer experience
-- **Tailwind CSS** - Utility-first styling
+- **Tailwind CSS 4** - Utility-first styling
 - **Radix UI** - Accessible component primitives
 - **ai-elements** - AI-specific UI components
 - **Motion** - Animation library (Framer Motion)
 
 ### Backend & Services
-- **Convex** - Real-time backend platform (configured but not yet integrated)
-- **Clerk** - Authentication system (planned)
-- **AI SDK** - AI model integration (planned)
-- **AI Gateway** - Model routing and management (planned)
+
+- **Convex 1.28** - Real-time backend platform (schema and client integrated)
+- **Clerk 6.34** - Authentication system (provider integrated)
+- **AI SDK 5.0** - AI model integration (in progress)
+- **resumable-stream** - Streaming chat responses
 
 ### Utilities
+
 - **usehooks-ts** - TypeScript React hooks
 - **nanoid** - Unique ID generation
 - **class-variance-authority** - Component variant management
 - **next-themes** - Theme switching
 
 ### Deployment
+
 - **Vercel** - Hosting and deployment platform
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - pnpm
+
+### Environment Variables
+
+Create a `.env.local` file with the following required variables:
+
+```bash
+# Convex Backend
+NEXT_PUBLIC_CONVEX_URL=<your-convex-deployment-url>
+
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<your-clerk-publishable-key>
+CLERK_SECRET_KEY=<your-clerk-secret-key>
+```
+
+**Note**: You can run Convex locally with `npx convex dev` or use a Convex Cloud deployment URL.
 
 ### Installation
 
 1. Clone the repository
+
 ```bash
 git clone <repository-url>
 cd c-chat
 ```
 
 2. Install dependencies
+
 ```bash
 pnpm install
 ```
 
-3. Set up environment variables
-```bash
-# Copy and configure environment variables
-cp .env.example .env.local
-```
+3. Set up environment variables as described above
 
 4. Start the development server
+
 ```bash
 pnpm dev
 ```
@@ -113,10 +139,13 @@ pnpm dev
 src/
 ├── app/                    # Next.js App Router
 │   ├── (chat)/            # Chat route group
+│   │   ├── api/
+│   │   │   └── chat/
+│   │   │       └── route.ts  # AI streaming endpoint
 │   │   ├── layout.tsx     # Chat layout with sidebar
 │   │   ├── page.tsx       # Main chat page
 │   │   └── chat/[id]/     # Individual chat pages
-│   ├── layout.tsx         # Root layout with theme provider
+│   ├── layout.tsx         # Root layout (Clerk + Convex + Theme providers)
 │   ├── page.tsx           # Home page redirect
 │   └── globals.css        # Global styles
 ├── components/             # React components
@@ -130,22 +159,27 @@ src/
 │   └── greeting.tsx      # Landing page greeting
 ├── hooks/                 # Custom React hooks
 ├── lib/                   # Utility functions
-└── providers/             # Context providers
-convex/                    # Convex backend (not yet configured)
-├── _generated/           # Auto-generated files
-└── README.md            # Convex setup guide
+└── providers/
+    ├── convex-client-provider.tsx  # Convex React client
+    └── theme-provider.tsx          # Theme context
+convex/                    # Convex backend
+├── _generated/           # Auto-generated API & types
+├── schema.ts            # Database schema (users, chats, messages)
+├── chats.ts             # Chat queries & mutations
+├── messages.ts          # Message queries & mutations
+├── users.ts             # User queries & mutations
+└── auth.config.ts       # Clerk auth config
 ```
 
 ## Current Limitations
 
 ⚠️ **Important**: This is a development version with the following limitations:
 
-- **No Backend Integration**: Convex configured but not yet connected to UI
-- **No Authentication**: User management and sign in/out not implemented
-- **No AI Model Connectivity**: Model selector is UI-only, no actual AI integration
-- **No Message Persistence**: Messages not saved or retrieved
-- **No Chat History**: Previous conversations not stored
+- **Auth UI Pending**: Clerk provider wired but sign-in/out screens not built
+- **AI Endpoint WIP**: Chat API route scaffolded with resumable-stream but not fully implemented
+- **Persistence UI Wiring**: Backend queries/mutations defined but UI integration incomplete
 - **Limited Message Actions**: Copy, upvote, and branch off features not implemented
+- **No Chat History UI**: Message retrieval not wired to components yet
 
 ## Development
 
