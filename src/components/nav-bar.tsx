@@ -1,29 +1,30 @@
 "use client";
 
-import React from "react";
-import { ThemeToggle } from "./theme-toggle";
-import { Unauthenticated } from "convex/react";
 import { SignInButton } from "@clerk/nextjs";
-import { Button } from "./ui/button";
 import { useStoreUserEffect } from "@/hooks/useStoreUserEffect";
+import { ThemeToggle } from "./theme-toggle";
+import { Button } from "./ui/button";
 
 export default function NavBar() {
-
   const { isLoading, isAuthenticated } = useStoreUserEffect();
   return (
-    <nav className="flex-row items-center justify-between gap-4 px-2 pt-4 pb-2 hidden md:flex">
-      <div className="flex items-center gap-4 ml-2">
-        <div className="bg-primary h-6 w-[1px] -skew-12" />
+    <nav className="hidden flex-row items-center justify-between gap-4 px-2 pt-4 pb-2 md:flex">
+      <div className="ml-2 flex items-center gap-4">
+        <div className="-skew-12 h-6 w-[1px] bg-primary" />
         <p className="text-h3 text-red-400">C Chat</p>
       </div>
       <div className="flex items-center gap-3">
         {isLoading && (
-          <Button className="border-none bg-primary/30 text-primary-foreground rounded-lg cursor-progress animate-pulse">Signing in...</Button>
+          <Button className="animate-pulse cursor-progress rounded-lg border-none bg-primary/30 text-primary-foreground">
+            Signing in...
+          </Button>
         )}
-        {!isLoading && !isAuthenticated && (
+        {!(isLoading || isAuthenticated) && (
           <SignInButton mode="modal">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg">Sign In</Button>
-            </SignInButton>
+            <Button className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
+              Sign In
+            </Button>
+          </SignInButton>
         )}
         <ThemeToggle />
       </div>

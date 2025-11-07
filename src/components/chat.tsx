@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
+import { Authenticated } from "convex/react";
 import PureMessages from "./messages";
 import MultimodalInput from "./multimodal-input";
-import { Authenticated } from "convex/react";
 
 export default function Chat() {
   return (
@@ -18,7 +17,7 @@ export default function Chat() {
         {/* TODO: Artifacts */}
         <Authenticated>
           <div className="sticky z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
-            <MultimodalInput input={""} setInput={() => {}} messages={[]} />
+            <MultimodalInput input={""} messages={[]} setInput={() => {}} />
           </div>
         </Authenticated>
       </div>

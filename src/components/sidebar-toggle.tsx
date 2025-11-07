@@ -1,15 +1,13 @@
 "use client";
 
-import { ComponentProps } from "react";
-import { Tooltip, TooltipTrigger } from "./ui/tooltip";
+import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
-import { SidebarIcon } from "./sidebar-icon";
 import { useHoverSidebar } from "./hover-sidebar-context";
+import { SidebarIcon } from "./sidebar-icon";
+import { Button } from "./ui/button";
+import { Tooltip, TooltipTrigger } from "./ui/tooltip";
 
-export function SidebarToggle({
-  className,
-}: ComponentProps<"button">) {
+export function SidebarToggle({ className }: ComponentProps<"button">) {
   const { toggleCollapsed, isCollapsed } = useHoverSidebar();
 
   return (
@@ -21,7 +19,10 @@ export function SidebarToggle({
           onClick={toggleCollapsed}
           variant="ghost"
         >
-          <SidebarIcon isCollapsed={isCollapsed} className="text-muted-foreground size-6" />
+          <SidebarIcon
+            className="size-6 text-muted-foreground"
+            isCollapsed={isCollapsed}
+          />
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
       </TooltipTrigger>

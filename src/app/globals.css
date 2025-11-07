@@ -126,28 +126,28 @@
   .min-w-3xs {
     min-width: 17rem; /* 272px */
   }
-  
+
   .w-3xs {
     width: 17rem; /* 272px */
   }
-  
+
   .h-11\/12 {
     height: 91.666667%; /* 11/12 */
   }
-  
+
   /* Custom text size utilities */
   .text-h2 {
     font-size: 1.5rem;
     line-height: 2rem;
     font-weight: 600;
   }
-  
+
   .text-h3 {
     font-size: 1.125rem;
     line-height: 1.75rem;
     font-weight: 600;
   }
-  
+
   .rounded-lg-primary {
     border-radius: calc(var(--radius) + 2px);
   }

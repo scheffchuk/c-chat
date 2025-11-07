@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import type React from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type HoverSidebarContextType = {
@@ -22,7 +29,11 @@ export function useHoverSidebar() {
   return context;
 }
 
-export function HoverSidebarProvider({ children }: { children: React.ReactNode }) {
+export function HoverSidebarProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [openMobile, setOpenMobile] = useState(false);
   const isMobile = useIsMobile();
@@ -67,4 +78,3 @@ export function HoverSidebarProvider({ children }: { children: React.ReactNode }
     </HoverSidebarContext.Provider>
   );
 }
-

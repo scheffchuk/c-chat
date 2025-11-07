@@ -1,22 +1,23 @@
-import { cn } from "@/lib/utils";
-import { UIMessage } from "ai";
+import type { UIMessage } from "ai";
+import { GlobeIcon } from "lucide-react";
 import {
-  Dispatch,
-  SetStateAction,
+  type Dispatch,
+  type SetStateAction,
   useCallback,
   useEffect,
   useRef,
 } from "react";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
+import { cn } from "@/lib/utils";
 import {
   PromptInput,
-  PromptInputBody,
   PromptInputActionAddAttachments,
   PromptInputActionMenu,
   PromptInputActionMenuContent,
   PromptInputActionMenuTrigger,
   PromptInputAttachment,
   PromptInputAttachments,
+  PromptInputBody,
   PromptInputButton,
   PromptInputFooter,
   PromptInputModelSelect,
@@ -29,7 +30,6 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "./ai-elements/prompt-input";
-import { GlobeIcon } from "lucide-react";
 
 const models = [
   { id: "gpt-4", name: "GPT-4" },

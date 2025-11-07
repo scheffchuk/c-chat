@@ -1,9 +1,11 @@
 "use client";
 
+import { UserButton } from "@clerk/nextjs";
+import { ClockIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useHoverSidebar } from "./hover-sidebar-context";
-import { PlusIcon, SearchIcon, ClockIcon, User, Variable } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useHoverSidebar } from "./hover-sidebar-context";
+import { ThemeToggle } from "./theme-toggle";
 import {
   Sheet,
   SheetContent,
@@ -11,8 +13,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "./ui/sheet";
-import { UserButton } from "@clerk/nextjs";
-import { ThemeToggle } from "./theme-toggle";
 
 export function AppSidebar() {
   const router = useRouter();
@@ -25,25 +25,25 @@ export function AppSidebar() {
     <>
       {/* New Chat Button */}
       <button
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-secondary py-2 text-sm transition-colors duration-100 hover:bg-accent"
         onClick={() => {
           router.push("/");
           router.refresh();
         }}
-        className="bg-secondary hover:bg-accent text-sm flex w-full items-center justify-center gap-2 rounded-lg py-2 transition-colors duration-100 cursor-pointer"
       >
         <PlusIcon size={16} />
         New Chat
       </button>
 
       {/* Search Bar */}
-      <div className="bg-muted relative w-full rounded-lg">
+      <div className="relative w-full rounded-lg bg-muted">
         <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
           <SearchIcon className="text-muted-foreground" size={14} />
         </div>
         <input
-          type="text"
+          className="w-full rounded-lg bg-transparent py-2 pr-3 pl-9 text-sm placeholder:text-muted-foreground focus:outline-none"
           placeholder="Search..."
-          className="text-sm placeholder:text-muted-foreground w-full rounded-lg bg-transparent py-2 pr-3 pl-9 focus:outline-none"
+          type="text"
         />
       </div>
 
@@ -51,7 +51,7 @@ export function AppSidebar() {
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
         {/* Recent Section */}
         <div className="mt-2 mb-2">
-          <button className="text-muted-foreground text-sm flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-100">
+          <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground text-sm transition-colors duration-100">
             <ClockIcon size={14} />
             <span>Recent</span>
           </button>
@@ -70,11 +70,11 @@ export function AppSidebar() {
             "Authentication flow",
           ].map((chat, index) => (
             <button
-              key={index}
+              className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition-colors duration-100 hover:bg-accent"
               id={`recent-${index}`}
-              className="hover:bg-accent text-xs group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors duration-100"
+              key={index}
             >
-              <span className="text-muted-foreground truncate">{chat}</span>
+              <span className="truncate text-muted-foreground">{chat}</span>
             </button>
           ))}
         </div>
@@ -104,9 +104,8 @@ export function AppSidebar() {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="border-border py-3 border-t flex items-center justify-end">
+      <div className="flex items-center justify-end border-border border-t py-3">
         <UserButton
-          showName={true}
           appearance={{
             elements: {
               userButtonTrigger: {
@@ -114,6 +113,7 @@ export function AppSidebar() {
               },
             },
           }}
+          showName={true}
         />
 
         {/* <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-100">
@@ -127,12 +127,16 @@ export function AppSidebar() {
   // Mobile: render inside Sheet
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-        <SheetContent side="left" className="bg-background w-[272px] p-2">
+      <Sheet onOpenChange={setOpenMobile} open={openMobile}>
+        <SheetContent className="w-[272px] bg-background p-2" side="left">
           <SheetHeader className="flex flex-row items-center justify-between px-0 py-1">
-            <SheetTitle className="text-h3 text-red-400 px-2">C Chat</SheetTitle>
-            <SheetDescription className="sr-only">Navigation and chat history</SheetDescription>
-            <ThemeToggle/>
+            <SheetTitle className="px-2 text-h3 text-red-400">
+              C Chat
+            </SheetTitle>
+            <SheetDescription className="sr-only">
+              Navigation and chat history
+            </SheetDescription>
+            <ThemeToggle />
           </SheetHeader>
           <div className="flex h-full flex-col gap-2">{sidebarContent}</div>
         </SheetContent>
@@ -145,16 +149,16 @@ export function AppSidebar() {
     /* Fixed part that slides in and out */
     <div
       className={twMerge(
-        "bg-background relative h-full min-w-3xs rounded-xl p-2 transition-all duration-100 ease-in-out",
+        "relative h-full min-w-3xs rounded-xl bg-background p-2 transition-all duration-100 ease-in-out",
         isCollapsed && "-ml-[272px]"
       )}
     >
       {/* Hover-reveal floating panel */}
       <div
         className={twMerge(
-          "sidebar-wrapper border-foreground/30 absolute left-0 h-full w-full rounded-lg transition-all duration-100 ease-in-out",
+          "sidebar-wrapper absolute left-0 h-full w-full rounded-lg border-foreground/30 transition-all duration-100 ease-in-out",
           isCollapsed &&
-            "bg-background rounded-lg-primary z-10 h-11/12 w-3xs translate-y-12 border p-2 pl-6 group-has-[.sidebar-icon-trigger:hover]:ml-[240px] group-has-[.sidebar-wrapper:hover]:ml-[240px]",
+            "z-10 h-11/12 w-3xs translate-y-12 rounded-lg-primary border bg-background p-2 pl-6 group-has-[.sidebar-icon-trigger:hover]:ml-[240px] group-has-[.sidebar-wrapper:hover]:ml-[240px]",
           !isCollapsed && "ml-[0px] h-full border-transparent bg-transparent"
         )}
       >

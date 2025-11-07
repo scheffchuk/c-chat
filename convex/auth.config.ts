@@ -1,4 +1,4 @@
-import { AuthConfig } from "convex/server";
+import type { AuthConfig } from "convex/server";
 
 // https://docs.convex.dev/auth/clerk#nextjs
 // https://docs.convex.dev/auth/database-auth
@@ -14,5 +14,5 @@ export default {
       domain: process.env.CLERK_JWT_ISSUER_DOMAIN!,
       applicationID: "convex",
     },
-  ]
+  ],
 } satisfies AuthConfig;

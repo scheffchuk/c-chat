@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/providers/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "@/providers/convex-client-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,8 +56,8 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} `}
+      lang="en"
       suppressHydrationWarning
     >
       <head>
@@ -75,8 +75,8 @@ export default function RootLayout({
             <ThemeProvider
               attribute="class"
               defaultTheme="system"
-              enableSystem
               disableTransitionOnChange
+              enableSystem
             >
               {children}
             </ThemeProvider>
