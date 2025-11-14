@@ -1,7 +1,7 @@
 "use client";
 
 import { SignInButton } from "@clerk/nextjs";
-import { useStoreUserEffect } from "@/hooks/useStoreUserEffect";
+import { useStoreUserEffect } from "@/hooks/use-store-user-effect";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 

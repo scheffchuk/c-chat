@@ -21,6 +21,8 @@
 
 ### Planned
 
+- [ ] visibility selector ui and hooks
+- [ ] international
 - [ ] Artifacts viewer/handler
 - [ ] Settings page
   - [ ] User preferences

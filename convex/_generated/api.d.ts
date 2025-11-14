@@ -9,6 +9,8 @@
  */
 
 import type * as chats from "../chats.js";
+import type * as http from "../http.js";
+import type * as messageActions from "../messageActions.js";
 import type * as messages from "../messages.js";
 import type * as users from "../users.js";
 
@@ -28,6 +30,8 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   chats: typeof chats;
+  http: typeof http;
+  messageActions: typeof messageActions;
   messages: typeof messages;
   users: typeof users;
 }>;
