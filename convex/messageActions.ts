@@ -1,9 +1,9 @@
+import { generateText, type UIMessage } from "ai";
 import { v } from "convex/values";
-import { internalAction } from "./_generated/server";
-import { generateText, UIMessage } from "ai";
-import { myProvider } from "../src/lib/ai/providers";
 import { titlePrompt } from "../src/lib/ai/prompt";
+import { myProvider } from "../src/lib/ai/providers";
 import { getTextFromMessage } from "../src/lib/utils";
+import { internalAction } from "./_generated/server";
 
 export const generateTitleFromUserMessage = internalAction({
   args: {

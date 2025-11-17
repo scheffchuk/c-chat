@@ -111,7 +111,7 @@ export const sheetPrompt = `
 //   }
 
 //   return `Improve the following contents of the ${mediaType} based on the given prompt.
-  
+
 //   ${currentContent}
 //   `;
 // };

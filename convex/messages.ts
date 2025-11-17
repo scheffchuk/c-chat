@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 
 const partValidator = v.union(
   v.object({ type: v.literal("text"), text: v.string() }),
-  v.object({ type: v.literal("tool"), name: v.string(), args: v.object({}) }),
+  v.object({ type: v.literal("tool"), name: v.string(), args: v.object({}) })
 );
 
 const attachmentValidator = v.object({
@@ -15,11 +15,7 @@ const messageReturnValidator = v.object({
   _id: v.id("messages"),
   _creationTime: v.number(),
   chatId: v.id("chats"),
-  role: v.union(
-    v.literal("user"),
-    v.literal("assistant"),
-    v.literal("system")
-  ),
+  role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
   parts: v.array(partValidator),
   attachments: v.array(attachmentValidator),
 });
@@ -29,12 +25,11 @@ export const getMessagesByChatId = query({
     chatId: v.id("chats"),
   },
   returns: v.array(messageReturnValidator),
-  handler: async (ctx, args) => {
-    return await ctx.db
+  handler: async (ctx, args) =>
+    await ctx.db
       .query("messages")
       .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))
-      .collect();
-  },
+      .collect(),
 });
 
 export const saveMessages = mutation({
@@ -49,14 +44,13 @@ export const saveMessages = mutation({
     attachments: v.array(attachmentValidator),
   },
   returns: v.id("messages"),
-  handler: async (ctx, args) => {
-    return await ctx.db.insert("messages", {
+  handler: async (ctx, args) =>
+    await ctx.db.insert("messages", {
       chatId: args.chatId,
       role: args.role,
       parts: args.parts,
       attachments: args.attachments,
-    });
-  },
+    }),
 });
 
 export const getMessageById = query({

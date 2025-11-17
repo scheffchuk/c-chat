@@ -17,12 +17,11 @@ export const getChatsByUserId = query({
       lastContext: v.optional(v.string()),
     })
   ),
-  handler: async (ctx, args) => {
-    return await ctx.db
+  handler: async (ctx, args) =>
+    await ctx.db
       .query("chats")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .collect();
-  },
+      .collect(),
 });
 
 export const getChatById = query({
@@ -81,7 +80,9 @@ export const deleteChatById = mutation({
     // Delete votes (by chat)
     for await (const vote of ctx.db
       .query("votes")
-      .withIndex("by_chatId_and_messageId", (q) => q.eq("chatId", args.chatId))) {
+      .withIndex("by_chatId_and_messageId", (q) =>
+        q.eq("chatId", args.chatId)
+      )) {
       await ctx.db.delete(vote._id);
     }
     // Delete streams

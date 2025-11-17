@@ -1,5 +1,6 @@
-import { UIMessage } from "ai";
+import type { UIMessage } from "ai";
 import z from "zod";
+import type { AppUsage } from "./usage";
 
 export type DataPart = { type: "append-message"; message: string };
 
@@ -23,7 +24,7 @@ export type CustomUIDataTypes = {
   // kind: {ArtifactKind}
   clear: null;
   finish: null;
-  // usage: AppUsage;
+  usage: AppUsage;
 };
 
 // TODO: Add tool types for ChatMessage

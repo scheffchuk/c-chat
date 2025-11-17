@@ -1,16 +1,4 @@
-import { httpRouter } from "convex/server";
-import { Doc, Id } from "./_generated/dataModel";
-import type { ModelCatalog } from "tokenlens/core";
-import { fetchModels } from "tokenlens/fetch";
-import { httpAction } from "./_generated/server";
-import { ChatMessage } from "../src/lib/types";
-import { ChatModel } from "../src/lib/ai/models";
-import { api, internal } from "./_generated/api";
-import { ChatSDKError } from "../src/lib/errors";
-import {
-  PostRequestBody,
-  postRequestBodySchema,
-} from "../src/app/(chat)/api/chat/schema";
+import { geolocation } from "@vercel/functions";
 import {
   convertToModelMessages,
   createUIMessageStream,
@@ -18,13 +6,25 @@ import {
   smoothStream,
   stepCountIs,
   streamText,
-  UIMessage,
+  type UIMessage,
 } from "ai";
-import { AppUsage } from "../src/lib/usage";
-import { myProvider } from "../src/lib/ai/providers";
-import { RequestHints, systemPrompt } from "../src/lib/ai/prompt";
-import { geolocation } from "@vercel/functions";
+import { httpRouter } from "convex/server";
+import type { ModelCatalog } from "tokenlens/core";
+import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
+import {
+  type PostRequestBody,
+  postRequestBodySchema,
+} from "../src/app/(chat)/api/chat/schema";
+import type { ChatModel } from "../src/lib/ai/models";
+import { type RequestHints, systemPrompt } from "../src/lib/ai/prompt";
+import { myProvider } from "../src/lib/ai/providers";
+import { ChatSDKError } from "../src/lib/errors";
+import type { ChatMessage } from "../src/lib/types";
+import type { AppUsage } from "../src/lib/usage";
+import { api, internal } from "./_generated/api";
+import type { Doc, Id } from "./_generated/dataModel";
+import { httpAction } from "./_generated/server";
 
 export const maxDuration = 60;
 
@@ -151,7 +151,7 @@ http.route({
 
         finalChatId = await ctx.runMutation(api.chats.saveChat, {
           userId: currentUser.id as Id<"users">,
-          title: title,
+          title,
           visibility: "private",
         });
       }
@@ -275,9 +275,7 @@ http.route({
             }
           }
         },
-        onError: () => {
-          return "Oops, an error occurred!";
-        },
+        onError: () => "Oops, an error occurred!",
       });
 
       return new Response(stream.pipeThrough(new JsonToSseTransformStream()));

@@ -1,5 +1,6 @@
 import type { UIMessage } from "ai";
 import { GlobeIcon } from "lucide-react";
+import { motion } from "motion/react";
 import {
   type Dispatch,
   type SetStateAction,
@@ -30,7 +31,6 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "./ai-elements/prompt-input";
-import { motion } from "motion/react";
 
 const models = [
   { id: "gpt-4", name: "GPT-4" },
@@ -111,11 +111,12 @@ export default function MultimodalInput({
 
   return (
     <motion.div
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 10 }}
-        initial={{ opacity: 0, y: 10 }}
-        transition={{ delay: 0.5 }}
-       className={cn("relative flex w-full flex-col gap-4", className)}>
+      animate={{ opacity: 1, y: 0 }}
+      className={cn("relative flex w-full flex-col gap-4", className)}
+      exit={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 10 }}
+      transition={{ delay: 0.5 }}
+    >
       {/* {messages.length === 0 && <Suggestions />} */}
 
       <PromptInput
