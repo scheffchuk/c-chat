@@ -84,3 +84,34 @@ export const deleteMessagesByChatIdAfterTimestamp = mutation({
     return null;
   },
 });
+
+/**
+ * Delete all messages in a chat that were created after a given message.
+ *
+ * Data flow:
+ * 1. Given a message id, fetch the message from the database
+ * 2. Extract the chatId and _creationTime from the message
+ * 3. Delete all messages in that chat with _creationTime > message._creationTime
+ */
+export const deleteTrailingMessages = mutation({
+  args: {
+    id: v.id("messages"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const message = await ctx.db.get(args.id);
+    if (!message) {
+      throw new Error("Message not found");
+    }
+
+    // Delete all messages in the same chat created after this message
+    for await (const msg of ctx.db
+      .query("messages")
+      .withIndex("by_chatId", (q) => q.eq("chatId", message.chatId))) {
+      if (msg._creationTime > message._creationTime) {
+        await ctx.db.delete(msg._id);
+      }
+    }
+    return null;
+  },
+});

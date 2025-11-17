@@ -1,34 +1,35 @@
 "use client";
 
 import type { UseChatHelpers } from "@ai-sdk/react";
+import equal from "fast-deep-equal";
 import { SparklesIcon } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { memo, useState } from "react";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizedText } from "@/lib/utils";
 import { useDataStream } from "@/providers/data-stream-provider";
 import { MessageContent, MessageResponse } from "./ai-elements/message";
+import { MessageActionsMemo } from "./message-actions";
+import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
 
 type PreviewMessageProps = {
-  chatId: string;
   message: ChatMessage;
   isLoading: boolean;
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
-  requireScrollPadding: boolean;
+  requiresScrollPadding: boolean;
 };
 
 const PurePreviewMessage = ({
-  chatId,
   message,
   isLoading,
   setMessages,
   regenerate,
   isReadonly,
-  requireScrollPadding,
+  requiresScrollPadding,
 }: PreviewMessageProps) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
 
@@ -63,14 +64,14 @@ const PurePreviewMessage = ({
             "gap-2 md:gap-4": message.parts.some(
               (part) => part.type === "text" && part.text?.trim()
             ),
-            "min-h-96": message.role === "assistant" && requireScrollPadding,
+            "min-h-96": message.role === "assistant" && requiresScrollPadding,
             "w-full":
               (message.role === "assistant" &&
                 message.parts?.some(
                   (part) => part.type === "text" && part.text?.trim()
                 )) ||
               mode === "edit",
-            // biome-ignore lint/nursery/useSortedClasses: <explanation>
+            // biome-ignore lint/nursery/useSortedClasses: <TODO: find out why this is needed>
             "max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content, 80%)]":
               message.role === "user" && mode !== "edit",
           })}
@@ -134,10 +135,88 @@ const PurePreviewMessage = ({
               }
 
               if (mode === "edit") {
-                return;
+                return (
+                  <div
+                    className="flex w-full flex-row items-start gap-3"
+                    key={key}
+                  >
+                    <div className="size-8" />
+                    <div className="min-w-0 flex-1">
+                      <MessageEditor
+                        key={message.id}
+                        message={message}
+                        regenerate={regenerate}
+                        setMessages={setMessages}
+                        setMode={setMode}
+                      />
+                    </div>
+                  </div>
+                );
               }
             }
+
+            //TODO: tool call conditions here
+
+            return null;
           })}
+
+          {!isReadonly && (
+            <MessageActionsMemo
+              isLoading={isLoading}
+              key={`action-${message.id}`}
+              message={message}
+              setMode={setMode}
+            />
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export const PreviewMessage = memo(
+  PurePreviewMessage,
+  (prevProps, nextProps) => {
+    if (prevProps.isLoading !== nextProps.isLoading) {
+      return false;
+    }
+
+    if (prevProps.message.id !== nextProps.message.id) {
+      return false;
+    }
+
+    if (prevProps.requiresScrollPadding !== nextProps.requiresScrollPadding) {
+      return false;
+    }
+
+    if (!equal(prevProps.message.parts, nextProps.message.parts)) {
+      return false;
+    }
+
+    return false;
+  }
+);
+
+export const ThinkingMessage = () => {
+  const role = "assistant";
+
+  return (
+    <motion.div
+      animate={{ opacity: 1 }}
+      className="group/message w-full"
+      data-role={role}
+      data-testid="message-assistant-loading"
+      exit={{ opacity: 0, transition: { duration: 0.3 } }}
+      initial={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className="flex items-start justify-start gap-3">
+        <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+          <SparklesIcon size={14} />
+        </div>
+
+        <div className="flex w-full flex-col gap-2 md:gap-4">
+          <div className="p-0 text-muted-foreground text-sm">Thinking...</div>
         </div>
       </div>
     </motion.div>
