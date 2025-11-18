@@ -11,7 +11,7 @@ import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { fetchWithErrorHandlers } from "@/lib/utils";
 import { useDataStream } from "@/providers/data-stream-provider";
-import PureMessages from "./messages";
+import { Messages } from "./messages";
 import MultimodalInput from "./multimodal-input";
 
 const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace(
@@ -117,7 +117,15 @@ export default function Chat({
           selectedVisibilityType={"private"}
           isReadonly={false}
         /> */}
-      <PureMessages messages={[]} />
+      <Messages
+        isArtifactVisible={false}
+        isReadOnly={isReadonly}
+        messages={messages}
+        regenerate={regenerate}
+        selectedModelId={currentModelId}
+        setMessages={setMessages}
+        status={status}
+      />
       {/* TODO: Artifacts */}
       <Authenticated>
         <div className="sticky z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
