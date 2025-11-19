@@ -12,7 +12,7 @@ import type { AppUsage } from "@/lib/usage";
 import { fetchWithErrorHandlers } from "@/lib/utils";
 import { useDataStream } from "@/providers/data-stream-provider";
 import { Messages } from "./messages";
-import MultimodalInput from "./multimodal-input";
+import { MultimodalInput } from "./multimodal-input";
 
 const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace(
   /.cloud$/,
@@ -25,7 +25,7 @@ export default function Chat({
   initialChatModel,
   initialVisibilityType,
   isReadonly,
-  autoResume,
+  // autoResume,
   initialLastContext,
 }: {
   id: string;
@@ -33,12 +33,12 @@ export default function Chat({
   initialChatModel: string;
   initialVisibilityType: "public" | "private";
   isReadonly: boolean;
-  autoResume: boolean;
-  initialLastContext: AppUsage;
+  // autoResume: boolean;
+  initialLastContext?: AppUsage;
 }) {
   const { setDataStream } = useDataStream();
-  const [input, setInput] = useState<string>("");
-  const [usage, setUsage] = useState<AppUsage>(initialLastContext);
+  // const [input, setInput] = useState<string>("");
+  const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
   const [currentModelId, setCurrentModelId] = useState(initialChatModel);
   const currentModelIdRef = useRef(initialChatModel);
@@ -54,7 +54,7 @@ export default function Chat({
     status,
     stop,
     regenerate,
-    resumeStream,
+    // resumeStream,
   } = useChat<ChatMessage>({
     id,
     messages: initialMessages,
@@ -129,7 +129,17 @@ export default function Chat({
       {/* TODO: Artifacts */}
       <Authenticated>
         <div className="sticky z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
-          <MultimodalInput input={""} messages={[]} setInput={() => {}} />
+          <MultimodalInput
+            chatId={id}
+            messages={messages}
+            selectedModelId={currentModelId}
+            selectedVisibilityType={initialVisibilityType}
+            sendMessage={sendMessage}
+            setMessages={setMessages}
+            status={status}
+            stop={stop}
+            usage={usage}
+          />
         </div>
       </Authenticated>
     </div>

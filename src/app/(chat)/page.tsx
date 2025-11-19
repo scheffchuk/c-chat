@@ -8,9 +8,15 @@ export default async function Page() {
 
   if (!modelIdFromCookie) {
     return (
-      <>
-        <Chat />
-      </>
+      <Chat
+        id={id}
+        initialChatModel="chat-model"
+        initialMessages={[]}
+        initialVisibilityType="private"
+        isReadonly={false}
+        key={id}
+      />
+      // <DataStreamHandler />
     );
   }
 }
