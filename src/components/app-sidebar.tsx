@@ -25,11 +25,12 @@ export function AppSidebar() {
     <>
       {/* New Chat Button */}
       <button
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-secondary py-2 text-sm transition-colors duration-100 hover:bg-accent"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary py-2 text-primary-foreground text-sm transition-colors duration-150 hover:bg-primary/90"
         onClick={() => {
           router.push("/");
           router.refresh();
         }}
+        type="button"
       >
         <PlusIcon size={16} />
         New Chat
@@ -51,7 +52,10 @@ export function AppSidebar() {
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
         {/* Recent Section */}
         <div className="mt-2 mb-2">
-          <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground text-sm transition-colors duration-100">
+          <button
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground text-sm transition-colors duration-150"
+            type="button"
+          >
             <ClockIcon size={14} />
             <span>Recent</span>
           </button>
@@ -70,9 +74,10 @@ export function AppSidebar() {
             "Authentication flow",
           ].map((chat, index) => (
             <button
-              className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition-colors duration-100 hover:bg-accent"
+              className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition-colors duration-150 hover:bg-accent"
               id={`recent-${index}`}
-              key={index}
+              key={chat}
+              type="button"
             >
               <span className="truncate text-muted-foreground">{chat}</span>
             </button>
@@ -81,7 +86,7 @@ export function AppSidebar() {
 
         {/* Starred Section */}
         {/* <div className="mt-4 mb-2">
-          <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-100">
+          <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-150">
             <StarIcon size={14} />
             <span>Starred</span>
           </button>
@@ -95,7 +100,7 @@ export function AppSidebar() {
           ].map((starred, index) => (
             <button
               key={index}
-              className="hover:bg-accent text-xs group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors duration-100"
+              className="hover:bg-accent text-xs group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors duration-150"
             >
               <span className="text-muted-foreground truncate">{starred}</span>
             </button>
@@ -116,7 +121,7 @@ export function AppSidebar() {
           showName={true}
         />
 
-        {/* <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-100">
+        {/* <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-150">
           <SettingsIcon size={14} />
           <span>Settings</span>
         </button> */}
@@ -149,14 +154,14 @@ export function AppSidebar() {
     /* Fixed part that slides in and out */
     <div
       className={twMerge(
-        "relative h-full min-w-3xs rounded-xl bg-background p-2 transition-all duration-100 ease-in-out",
+        "relative h-full min-w-3xs rounded-xl bg-background p-2 transition-all duration-150 ease-in-out",
         isCollapsed && "-ml-[272px]"
       )}
     >
       {/* Hover-reveal floating panel */}
       <div
         className={twMerge(
-          "sidebar-wrapper absolute left-0 h-full w-full rounded-lg border-foreground/30 transition-all duration-100 ease-in-out",
+          "sidebar-wrapper absolute left-0 h-full w-full rounded-lg border-foreground/30 transition-all duration-150 ease-in-out",
           isCollapsed &&
             "z-10 h-11/12 w-3xs translate-y-12 rounded-lg-primary border bg-background p-2 pl-6 group-has-[.sidebar-icon-trigger:hover]:ml-[240px] group-has-[.sidebar-wrapper:hover]:ml-[240px]",
           !isCollapsed && "ml-[0px] h-full border-transparent bg-transparent"

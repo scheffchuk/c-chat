@@ -15,10 +15,10 @@ type SuggestedActionsProps = {
 
 function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
   const suggestedActions = [
-    "What is Capitalism?",
-    "What is Socialism?",
-    "Help me write an essay on the history of capitalism.",
-    "What is the weather in Tokyo?",
+    "人生の意味とは何か?",
+    "AI（人工知能）とは？",
+    "How many 's' are in the word 'strawberry'?",
+    "What is the weather in Tokyo today?",
   ];
 
   return (

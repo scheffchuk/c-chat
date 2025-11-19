@@ -14,7 +14,10 @@ export function SidebarToggle({ className }: ComponentProps<"button">) {
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          className={cn("sidebar-icon-trigger h-8 md:h-fit md:px-4", className)}
+          className={cn(
+            "sidebar-icon-trigger h-8 text-primary hover:text-primary/90 md:h-fit md:px-4",
+            className
+          )}
           data-testid="sidebar-toggle-button"
           onClick={toggleCollapsed}
           variant="ghost"

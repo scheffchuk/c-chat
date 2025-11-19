@@ -35,15 +35,6 @@ export default defineSchema({
       v.object({ type: v.literal("document"), documentId: v.id("documents") })
     ),
   }).index("by_chatId", ["chatId"]),
-
-  votes: defineTable({
-    chatId: v.id("chats"),
-    messageId: v.id("messages"),
-    isUpvoted: v.boolean(),
-  })
-    .index("by_chatId_and_messageId", ["chatId", "messageId"])
-    .index("by_messageId", ["messageId"]),
-
   documents: defineTable({
     userId: v.id("users"),
     title: v.string(),

@@ -17,7 +17,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <AppSidebar />
               <div className="flex h-full w-full flex-col rounded-xl border border-foreground/30 bg-background transition-all duration-100 ease-in-out">
                 <div className="sidebar-icon-trigger max-w-max p-2">
-                  <SidebarToggle className="cursor-pointer p-3 hover:bg-transparent" />
+                  <SidebarToggle className="cursor-pointer p-3 hover:bg-transparent hover:text-primary/90" />
                 </div>
                 {children}
               </div>
