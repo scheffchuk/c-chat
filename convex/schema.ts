@@ -24,7 +24,11 @@ export default defineSchema({
     parts: v.array(
       v.union(
         v.object({ type: v.literal("text"), text: v.string() }),
-        v.object({ type: v.literal("tool"), name: v.string(), args: v.object({}) }),
+        v.object({
+          type: v.literal("tool"),
+          name: v.string(),
+          args: v.object({}),
+        })
       )
     ),
     attachments: v.array(

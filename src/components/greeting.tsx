@@ -5,7 +5,7 @@ export default function Greeting() {
   const { user } = useUser();
   return (
     <div
-      className="justiy-center mx-auto mt-4 flex size-full max-w-3xl flex-col px-4 md:mt-16 md:px-8 font-semibold text-2xl md:text-4xl text-primary/90"
+      className="justiy-center mx-auto mt-4 flex size-full max-w-3xl flex-col px-4 font-semibold text-2xl text-primary/90 md:mt-16 md:px-8 md:text-4xl"
       key="overview"
     >
       <motion.div
