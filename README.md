@@ -10,34 +10,40 @@ While the demand for multi-model AI chat interfaces is high, existing solutions 
 
 **🚧 Currently in Active Development**
 
-This project is under active development as a graduation assignment. The frontend UI is largely complete, but backend integration and AI model connectivity are still in progress.
+This project is under active development as a graduation assignment. Core chat functionality is operational with AI model integration, message persistence, and authentication working. UI enhancements and additional features are in progress.
 
 ### ✅ Completed Features
 
 - Modern responsive UI with sidebar navigation
 - Multimodal input interface (text, voice, file attachments)
 - Theme switching support (light/dark mode)
-- Multi-model selector UI (ready for backend integration)
+- Multi-model selector UI with backend integration
 - Chat interface layout and components
 - Homepage with greeting component
+- Sign in/Sign out functionality (Clerk integration)
+- AI SDK API endpoint with streaming support
+- Message persistence and storage (Convex backend)
+- Message display component with rendering
+- Message actions (copy, edit)
 - Convex backend schema (Users, Messages, Chats)
 - Convex client integration with React
 - Clerk authentication provider integration
+- Real-time message sync
 
 ### 🚧 In Progress
 
-- AI SDK API endpoint with streaming (resumable-stream scaffold)
-- Message persistence UI wiring
-- Authentication flows and screens
+- Chat history navigation (UI exists, backend integration pending)
+- Individual chat pages (route scaffolded, implementation pending)
+- Message actions (upvote, branch off - UI components exist, wiring pending)
 
 ### 📋 Planned Features
 
-- Sign in/Sign out functionality
-- Message actions (copy, upvote, branch off)
+- Chat history retrieval and display in sidebar
+- Complete routing system for individual chats
 - Chat artifacts and file handling
 - Settings page and user preferences
-- Public/private chat visibility controls
-- Complete routing system
+- Public/private chat visibility controls UI
+- Message upvote and branch off functionality
 
 ## Key Features
 
@@ -45,7 +51,7 @@ This project is under active development as a graduation assignment. The fronten
 - **Multimodal Input**: Support for text, voice, and file attachments
 - **Multi-Model Ready**: UI prepared for multiple AI model integration
 - **Real-time Backend**: Convex for real-time data sync and backend operations
-- **Authentication**: Clerk provider integrated (UI flows pending)
+- **Authentication**: Clerk provider integrated with sign in/out flows
 - **Developer Friendly**: Built with modern web technologies and TypeScript
 - **Responsive Design**: Optimized for desktop and mobile experiences
 
@@ -72,7 +78,7 @@ This project is under active development as a graduation assignment. The fronten
 
 - **Convex 1.28** - Real-time backend platform (schema and client integrated)
 - **Clerk 6.34** - Authentication system (provider integrated)
-- **AI SDK 5.0** - AI model integration (in progress)
+- **AI SDK 5.0** - AI model integration with streaming support
 - **resumable-stream** - Streaming chat responses
 
 ### Utilities
@@ -175,11 +181,11 @@ convex/                    # Convex backend
 
 ⚠️ **Important**: This is a development version with the following limitations:
 
-- **Auth UI Pending**: Clerk provider wired but sign-in/out screens not built
-- **AI Endpoint WIP**: Chat API route scaffolded with resumable-stream but not fully implemented
-- **Persistence UI Wiring**: Backend queries/mutations defined but UI integration incomplete
-- **Limited Message Actions**: Copy, upvote, and branch off features not implemented
-- **No Chat History UI**: Message retrieval not wired to components yet
+- **Chat History**: Sidebar shows placeholder data; backend integration pending
+- **Individual Chat Pages**: Route exists but page implementation incomplete
+- **Message Actions**: Copy and edit work; upvote and branch off UI exists but not wired
+- **Visibility Controls**: Backend support exists; UI selector not implemented
+- **Settings Page**: Not yet implemented
 
 ## Development
 
