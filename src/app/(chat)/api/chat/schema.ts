@@ -18,7 +18,7 @@ const partSchema = z.union([textPartSchema, filePartSchema]);
 const chatModelIds = chatModels.map((m) => m.id) as [string, ...string[]];
 
 export const postRequestBodySchema = z.object({
-  id: z.string().optional(),
+  id: z.string(),
   clientId: z.string().optional(),
   message: z.object({
     id: z.string(),

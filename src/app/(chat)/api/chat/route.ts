@@ -15,7 +15,6 @@ import { createResumableStreamContext } from "resumable-stream/ioredis";
 import { fetchModels, type ModelCatalog } from "tokenlens";
 import { getUsage } from "tokenlens/helpers";
 import { v4 as uuidv4 } from "uuid";
-import type { VisibilityType } from "@/components/visibility-selector";
 import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompt";
 import { getAuthContext } from "@/lib/auth-server";
@@ -24,7 +23,7 @@ import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages } from "@/lib/utils";
 import { api } from "../../../../../convex/_generated/api";
-import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
+import type { Id } from "../../../../../convex/_generated/dataModel";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
@@ -59,7 +58,6 @@ export function getStreamContext() {
   return globalStreamContext;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: complex chat API with multiple async operations
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
 
@@ -70,7 +68,6 @@ export async function POST(request: Request) {
     return new ChatSDKError("bad_request:api").toResponse();
   }
 
-  // Single auth check - get token or return unauthorized
   const token = await getAuthContext();
   if (!token) {
     return new ChatSDKError("unauthorized:chat").toResponse();
@@ -81,12 +78,10 @@ export async function POST(request: Request) {
       id,
       message,
       selectedChatModel,
-      selectedVisibilityType,
     }: {
-      id?: string;
+      id: string;
       message: ChatMessage;
       selectedChatModel: ChatModel["id"];
-      selectedVisibilityType: VisibilityType;
     } = requestBody;
 
     const user = await fetchQuery(api.users.getCurrentUser, {}, { token });
@@ -94,50 +89,27 @@ export async function POST(request: Request) {
       return new ChatSDKError("unauthorized:chat").toResponse();
     }
 
-    let chat: Doc<"chats"> | null = null;
-    let chatId: Id<"chats"> | null = null;
-    let messagesFromDb: Doc<"messages">[] = [];
-    let isNewChat = false;
+    const chatId = id as Id<"chats">;
 
-    // Only try to fetch existing chat if id is provided
-    if (id) {
-      try {
-        chat = await fetchQuery(
-          api.chats.getChatById,
-          { chatId: id as Id<"chats"> },
-          { token }
-        );
-      } catch {
-        // chat not found, create a new one
-      }
+    // Chat must exist (created by client before sending first message)
+    const chat = await fetchQuery(api.chats.getChatById, { chatId }, { token });
+
+    if (!chat) {
+      return new ChatSDKError("not_found:chat").toResponse();
     }
 
-    if (chat) {
-      if (chat.userId !== user._id) {
-        return new ChatSDKError("forbidden:chat").toResponse();
-      }
-
-      chatId = chat._id;
-      messagesFromDb = await fetchQuery(
-        api.messages.getMessagesByChatId,
-        { chatId },
-        { token }
-      );
-    } else {
-      let title = "New Chat";
-      try {
-        title = await generateTitleFromUserMessage({ message });
-      } catch (error) {
-        console.warn("Title generation failed, using fallback:", error);
-      }
-
-      chatId = await fetchMutation(
-        api.chats.saveChat,
-        { title, visibility: selectedVisibilityType },
-        { token }
-      );
-      isNewChat = true;
+    if (chat.userId !== user._id) {
+      return new ChatSDKError("forbidden:chat").toResponse();
     }
+
+    const messagesFromDb = await fetchQuery(
+      api.messages.getMessagesByChatId,
+      { chatId },
+      { token }
+    );
+
+    // Check if this is the first message (for title generation)
+    const isFirstMessage = messagesFromDb.length === 0;
 
     const uiMessages = [...convertToUIMessages(messagesFromDb), message];
 
@@ -179,14 +151,6 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: ({ writer: datastream }) => {
-        // Send chatId to frontend for new chats
-        if (isNewChat && chatId) {
-          datastream.write({
-            type: "data-chatId",
-            data: chatId,
-          });
-        }
-
         const result = streamText({
           model: gateway(selectedChatModel),
           system: systemPrompt({
@@ -237,7 +201,7 @@ export async function POST(request: Request) {
                 data: finalMergedUsage,
               });
             } catch (error) {
-              console.warn("TokenLens enrichmnt failed", error);
+              console.warn("TokenLens enrichment failed", error);
               finalMergedUsage = usage;
               datastream.write({
                 type: "data-usage",
@@ -263,7 +227,6 @@ export async function POST(request: Request) {
               role: msg.role,
               parts: (msg.parts ?? [])
                 .filter((part) => {
-                  // Only keep text/reasoning parts with actual content
                   if (part.type === "text") {
                     return part.text?.trim().length > 0;
                   }
@@ -273,7 +236,6 @@ export async function POST(request: Request) {
                   return false;
                 })
                 .map((part) => {
-                  // Strip providerMetadata to reduce payload size
                   if (part.type === "text") {
                     return { type: "text" as const, text: part.text };
                   }
@@ -303,6 +265,20 @@ export async function POST(request: Request) {
               },
               { token }
             );
+          }
+
+          // Generate title after first message
+          if (isFirstMessage) {
+            try {
+              const title = await generateTitleFromUserMessage({ message });
+              await fetchMutation(
+                api.chats.updateTitle,
+                { id: chatId, title },
+                { token }
+              );
+            } catch (error) {
+              console.warn("Title generation failed:", error);
+            }
           }
         } catch (error) {
           console.error("Error in onFinish callback:", error);

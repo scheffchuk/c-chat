@@ -205,3 +205,23 @@ export const updateLastContext = mutation({
     });
   },
 });
+
+export const updateTitle = mutation({
+  args: {
+    id: v.id("chats"),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+
+    const chat = await ctx.db.get(args.id);
+
+    if (!chat || chat.userId !== user._id) {
+      throw new Error("Not found or forbidden");
+    }
+
+    await ctx.db.patch(args.id, {
+      title: args.title,
+    });
+  },
+});

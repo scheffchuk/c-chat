@@ -3,7 +3,6 @@
 import { useChat } from "@ai-sdk/react";
 import { type DataUIPart, DefaultChatTransport } from "ai";
 import { Authenticated } from "convex/react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { chatModels, DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
@@ -21,145 +20,99 @@ export default function Chat({
   initialChatModel,
   initialVisibilityType,
   isReadonly,
-  // autoResume,
   initialLastContext,
 }: {
-  id?: string;
+  id: string;
   initialMessages: ChatMessage[];
   initialChatModel: string;
   initialVisibilityType: "public" | "private";
   isReadonly: boolean;
-  // autoResume: boolean;
   initialLastContext?: AppUsage;
 }) {
-  const router = useRouter();
   const { setDataStream } = useDataStream();
-  // const [input, setInput] = useState<string>("");
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
   const [currentModelId] = useState(initialChatModel);
   const currentModelIdRef = useRef(initialChatModel);
-
-  const [serverChatId, setServerChatId] = useState<string | null>(id ?? null);
-  const serverChatIdRef = useRef<string | null>(id ?? null);
-
-  useEffect(() => {
-    serverChatIdRef.current = serverChatId;
-  }, [serverChatId]);
+  const hasSentPendingMessage = useRef(false);
 
   useEffect(() => {
     currentModelIdRef.current = currentModelId;
   }, [currentModelId]);
 
-  const {
-    messages,
-    setMessages,
-    sendMessage,
-    status,
-    stop,
-    regenerate,
-    // resumeStream,
-  } = useChat<ChatMessage>({
-    id,
-    messages: initialMessages,
-    experimental_throttle: 100,
-    generateId: () => crypto.randomUUID(),
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-      fetch: (input, init) => {
-        // Better Auth handles cookies automatically, but we need to include credentials
-        const headers = new Headers(init?.headers);
-        return fetchWithErrorHandlers(input, {
-          ...init,
-          headers,
-          credentials: "include",
-        });
-      },
-      prepareSendMessagesRequest: (request) => {
-        const modelId = currentModelIdRef.current;
-        const isValidModel = chatModels.some((model) => model.id === modelId);
-        const selectedChatModel = isValidModel ? modelId : DEFAULT_CHAT_MODEL;
+  const { messages, setMessages, sendMessage, status, stop, regenerate } =
+    useChat<ChatMessage>({
+      id,
+      messages: initialMessages,
+      experimental_throttle: 100,
+      generateId: () => crypto.randomUUID(),
+      transport: new DefaultChatTransport({
+        api: "/api/chat",
+        fetch: (input, init) => {
+          const headers = new Headers(init?.headers);
+          return fetchWithErrorHandlers(input, {
+            ...init,
+            headers,
+            credentials: "include",
+          });
+        },
+        prepareSendMessagesRequest: (request) => {
+          const modelId = currentModelIdRef.current;
+          const isValidModel = chatModels.some((model) => model.id === modelId);
+          const selectedChatModel = isValidModel ? modelId : DEFAULT_CHAT_MODEL;
 
-        const lastMessage = request.messages.at(-1);
-        if (!lastMessage) {
-          throw new Error("No message to send");
-        }
-
-        // Ensure message has an ID
-        const message = {
-          ...lastMessage,
-          id: lastMessage.id || crypto.randomUUID(),
-        };
-
-        return {
-          body: {
-            id: serverChatIdRef.current ?? undefined,
-            clientId: request.id,
-            message,
-            selectedChatModel,
-            selectedVisibilityType: initialVisibilityType,
-          },
-        };
-      },
-    }),
-    onData: (dataPart: DataUIPart<CustomUIDataTypes>) => {
-      setDataStream((ds) => (ds ? [...ds, dataPart] : []));
-      if (dataPart.type === "data-usage") {
-        setUsage(dataPart.data);
-      }
-      if (
-        dataPart.type === "data-chatId" &&
-        typeof dataPart.data === "string"
-      ) {
-        const newId = dataPart.data;
-        if (newId !== serverChatIdRef.current) {
-          setServerChatId(newId);
-          if (id) {
-            window.history.replaceState({}, "", `/chat/${newId}`);
-          } else {
-            router.push(`/chat/${newId}`);
+          const lastMessage = request.messages.at(-1);
+          if (!lastMessage) {
+            throw new Error("No message to send");
           }
+
+          const message = {
+            ...lastMessage,
+            id: lastMessage.id || crypto.randomUUID(),
+          };
+
+          return {
+            body: {
+              id,
+              clientId: request.id,
+              message,
+              selectedChatModel,
+              selectedVisibilityType: initialVisibilityType,
+            },
+          };
+        },
+      }),
+      onData: (dataPart: DataUIPart<CustomUIDataTypes>) => {
+        setDataStream((ds) => (ds ? [...ds, dataPart] : []));
+        if (dataPart.type === "data-usage") {
+          setUsage(dataPart.data);
         }
-      }
-    },
-    // onFinish: () => {},
-    onError: (error) => {
-      if (error instanceof ChatSDKError) {
+      },
+      onError: (error) => {
         if (
+          error instanceof ChatSDKError &&
           error.message?.includes("AI Gateway requires a valid credit card")
         ) {
           toast.error(error.message);
         }
-        return;
-      }
-    },
-  });
+      },
+    });
 
-  const searchParams = useSearchParams();
-  const query = searchParams.get("query");
-
-  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
-
+  // Send pending message from sessionStorage (from new chat creation)
   useEffect(() => {
-    if (query && !hasAppendedQuery) {
-      sendMessage({
-        role: "user" as const,
-        parts: [{ type: "text", text: query }],
-      });
-
-      setHasAppendedQuery(true);
-      if (id) {
-        window.history.replaceState({}, "", `/chat/${id}`);
-      }
+    if (hasSentPendingMessage.current || initialMessages.length > 0) {
+      return;
     }
-  }, [query, sendMessage, hasAppendedQuery, id]);
+
+    const stored = sessionStorage.getItem("pending-chat-message");
+    if (stored) {
+      sessionStorage.removeItem("pending-chat-message");
+      hasSentPendingMessage.current = true;
+      sendMessage(JSON.parse(stored) as ChatMessage);
+    }
+  }, [initialMessages.length, sendMessage]);
 
   return (
     <div className="overscroll-behavior-contain flex h-full min-w-0 touch-pan-y flex-col">
-      {/* <ChatHeader
-          chatId={""}
-          selectedVisibilityType={"private"}
-          isReadonly={false}
-        /> */}
       <Messages
         isArtifactVisible={false}
         isReadOnly={isReadonly}
@@ -169,11 +122,10 @@ export default function Chat({
         setMessages={setMessages}
         status={status}
       />
-      {/* TODO: Artifacts */}
       <Authenticated>
         <div className="sticky z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
           <MultimodalInput
-            chatId={serverChatId ?? id ?? ""}
+            chatId={id}
             messages={messages}
             selectedModelId={currentModelId}
             selectedVisibilityType={initialVisibilityType}
