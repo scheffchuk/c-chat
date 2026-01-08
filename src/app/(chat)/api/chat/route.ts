@@ -1,3 +1,4 @@
+import { gateway } from "@ai-sdk/gateway";
 import { geolocation } from "@vercel/functions";
 import {
   convertToModelMessages,
@@ -17,7 +18,6 @@ import { uuidv4 } from "zod";
 import type { VisibilityType } from "@/components/visibility-selector";
 import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompt";
-import { myProvider } from "@/lib/ai/providers";
 import { getAuthContext } from "@/lib/auth-server";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
@@ -96,6 +96,7 @@ export async function POST(request: Request) {
     let chat: Doc<"chats"> | null = null;
     let chatId: Id<"chats"> | null = null;
     let messagesFromDb: Doc<"messages">[] = [];
+    let isNewChat = false;
 
     // Only try to fetch existing chat if id is provided
     if (id) {
@@ -129,6 +130,7 @@ export async function POST(request: Request) {
         { title, visibility: selectedVisibilityType },
         { token }
       );
+      isNewChat = true;
     }
 
     const uiMessages = [...convertToUIMessages(messagesFromDb), message];
@@ -171,8 +173,16 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: ({ writer: datastream }) => {
+        // Send chatId to frontend for new chats
+        if (isNewChat && chatId) {
+          datastream.write({
+            type: "data-chatId",
+            data: chatId,
+          });
+        }
+
         const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
+          model: gateway(selectedChatModel),
           system: systemPrompt({
             selectedChatModel,
             requestHints,
@@ -187,8 +197,7 @@ export async function POST(request: Request) {
           onFinish: async ({ usage }) => {
             try {
               const providers = await getTokenlensCatalog();
-              const modelId =
-                myProvider.languageModel(selectedChatModel).modelId;
+              const modelId = gateway(selectedChatModel).modelId;
               if (!modelId) {
                 finalMergedUsage = usage;
                 datastream.write({
@@ -241,18 +250,24 @@ export async function POST(request: Request) {
       },
       generateId: () => uuidv4().toString(),
       onFinish: async ({ messages }) => {
-        await fetchMutation(
-          api.messages.saveMessages,
-          {
-            messages: messages.map((currentMessage) => ({
-              chatId,
-              role: currentMessage.role,
-              parts: currentMessage.parts,
-              attachments: [],
-            })),
-          },
-          { token }
-        );
+        const filteredMessages = messages
+          .map((msg) => ({
+            chatId,
+            role: msg.role,
+            parts: msg.parts.filter(
+              (part) => part.type === "text" || part.type === "reasoning"
+            ),
+            attachments: [],
+          }))
+          .filter((msg) => msg.parts.length > 0);
+
+        if (filteredMessages.length > 0) {
+          await fetchMutation(
+            api.messages.saveMessages,
+            { messages: filteredMessages },
+            { token }
+          );
+        }
 
         if (finalMergedUsage) {
           try {

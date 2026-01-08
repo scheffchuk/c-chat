@@ -95,8 +95,6 @@ function PureMultimodalInput({
         return;
       }
 
-      window.history.pushState({}, "", `/chat/${chatId}`);
-
       // Convert blob URLs to Files and upload them
       const uploadedParts = await Promise.all(
         // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <explanation>
@@ -166,7 +164,7 @@ function PureMultimodalInput({
         ],
       });
     },
-    [status, chatId, sendMessage, uploadFile]
+    [status, sendMessage, uploadFile]
   );
 
   return (

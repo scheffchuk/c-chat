@@ -8,7 +8,7 @@ export default defineSchema({
     userId: v.string(), // Better Auth user ID
     title: v.string(),
     visibility: v.union(v.literal("public"), v.literal("private")),
-    lastContext: v.optional(v.string()),
+    lastContext: v.optional(v.any()), // Usage data: tokens, costs, context limits - shape varies by model
   }).index("by_userId", ["userId"]),
 
   messages: defineTable({

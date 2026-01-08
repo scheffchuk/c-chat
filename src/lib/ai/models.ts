@@ -72,16 +72,16 @@ export const chatModels: ChatModel[] = [
   },
   // xAI (Grok)
   {
-    id: "chat-model",
-    name: "Grok Vision",
+    id: "xai/grok-3",
+    name: "Grok 3",
     description:
-      "Grok Vision is a chat model that can see and understand images.",
+      "xAI's flagship model with advanced reasoning and multimodal capabilities.",
   },
   {
-    id: "chat-model-reasoning",
-    name: "Grok Reasoning",
+    id: "xai/grok-3-mini",
+    name: "Grok 3 Mini",
     description:
-      "Grok Reasoning is a chat model that can reason and understand images.",
+      "xAI's efficient model optimized for speed and cost-effectiveness.",
   },
   // Meta (Open Source)
   {

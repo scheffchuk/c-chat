@@ -1,9 +1,9 @@
 "use server";
 
+import { gateway } from "@ai-sdk/gateway";
 import { generateText, type UIMessage } from "ai";
 import { cookies } from "next/headers";
 import { titlePrompt } from "@/lib/ai/prompt";
-import { myProvider } from "@/lib/ai/providers";
 import { getTextFromMessage } from "@/lib/utils";
 
 export async function saveChatModelAsCookie(model: string) {
@@ -17,7 +17,7 @@ export async function generateTitleFromUserMessage({
   message: UIMessage;
 }) {
   const { text: title } = await generateText({
-    model: myProvider.languageModel("title-model"),
+    model: gateway("google/gemini-2.5-flash"),
     system: titlePrompt,
     prompt: getTextFromMessage(message),
   });

@@ -5,15 +5,14 @@ import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 export default async function Page() {
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get("chat-model");
+  const selectedModel = modelIdFromCookie?.value ?? DEFAULT_CHAT_MODEL;
 
-  if (!modelIdFromCookie) {
-    return (
-      <Chat
-        initialChatModel={DEFAULT_CHAT_MODEL}
-        initialMessages={[]}
-        initialVisibilityType="private"
-        isReadonly={false}
-      />
-    );
-  }
+  return (
+    <Chat
+      initialChatModel={selectedModel}
+      initialMessages={[]}
+      initialVisibilityType="private"
+      isReadonly={false}
+    />
+  );
 }
