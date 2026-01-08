@@ -1,12 +1,12 @@
 "use client";
 
-import { SignInButton } from "@clerk/nextjs";
-import { useStoreUserEffect } from "@/hooks/use-store-user-effect";
+import { signIn, useAuth } from "@/lib/auth-client";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 
 export default function NavBar() {
-  const { isLoading, isAuthenticated } = useStoreUserEffect();
+  const { isLoading, isAuthenticated } = useAuth();
+
   return (
     <nav className="hidden flex-row items-center justify-between gap-4 px-2 pt-4 pb-2 md:flex">
       <div className="ml-2 flex items-center gap-4">
@@ -20,11 +20,12 @@ export default function NavBar() {
           </Button>
         )}
         {!(isLoading || isAuthenticated) && (
-          <SignInButton mode="modal">
-            <Button className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
-              Sign In
-            </Button>
-          </SignInButton>
+          <Button
+            className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={() => signIn.social({ provider: "google" })}
+          >
+            Sign In
+          </Button>
         )}
         <ThemeToggle />
       </div>

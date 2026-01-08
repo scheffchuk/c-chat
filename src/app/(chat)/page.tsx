@@ -1,22 +1,19 @@
 import { cookies } from "next/headers";
 import Chat from "@/components/chat";
+import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 
 export default async function Page() {
-  const id = crypto.randomUUID();
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get("chat-model");
 
   if (!modelIdFromCookie) {
     return (
       <Chat
-        id={id}
-        initialChatModel="chat-model"
+        initialChatModel={DEFAULT_CHAT_MODEL}
         initialMessages={[]}
         initialVisibilityType="private"
         isReadonly={false}
-        key={id}
       />
-      // <DataStreamHandler />
     );
   }
 }

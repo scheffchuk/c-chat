@@ -1,65 +1,62 @@
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+import { getAuthenticatedUser } from "./auth";
 
-const partValidator = v.union(
-  v.object({ type: v.literal("text"), text: v.string() }),
-  v.object({ type: v.literal("tool"), name: v.string(), args: v.object({}) })
-);
+export const saveMessages = mutation({
+  args: {
+    messages: v.array(
+      v.object({
+        id: v.optional(v.string()),
+        chatId: v.id("chats"),
+        role: v.union(
+          v.literal("user"),
+          v.literal("assistant"),
+          v.literal("system")
+        ),
+        parts: v.any(),
+        attachments: v.any(),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    await getAuthenticatedUser(ctx);
 
-const attachmentValidator = v.object({
-  type: v.literal("document"),
-  documentId: v.id("documents"),
-});
+    const insertedIds: Id<"messages">[] = [];
 
-const messageReturnValidator = v.object({
-  _id: v.id("messages"),
-  _creationTime: v.number(),
-  chatId: v.id("chats"),
-  role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
-  parts: v.array(partValidator),
-  attachments: v.array(attachmentValidator),
+    for (const message of args.messages) {
+      const id = await ctx.db.insert("messages", {
+        chatId: message.chatId,
+        role: message.role,
+        parts: message.parts,
+        attachments: message.attachments,
+      });
+      insertedIds.push(id);
+    }
+    return insertedIds;
+  },
 });
 
 export const getMessagesByChatId = query({
   args: {
     chatId: v.id("chats"),
   },
-  returns: v.array(messageReturnValidator),
-  handler: async (ctx, args) =>
-    await ctx.db
+  handler: async (ctx, args) => {
+    const messages = await ctx.db
       .query("messages")
       .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))
-      .collect(),
-});
-
-export const saveMessages = mutation({
-  args: {
-    chatId: v.id("chats"),
-    role: v.union(
-      v.literal("user"),
-      v.literal("assistant"),
-      v.literal("system")
-    ),
-    parts: v.array(partValidator),
-    attachments: v.array(attachmentValidator),
+      .order("asc")
+      .collect();
+    return messages;
   },
-  returns: v.id("messages"),
-  handler: async (ctx, args) =>
-    await ctx.db.insert("messages", {
-      chatId: args.chatId,
-      role: args.role,
-      parts: args.parts,
-      attachments: args.attachments,
-    }),
 });
 
 export const getMessageById = query({
   args: {
-    messageId: v.id("messages"),
+    id: v.id("messages"),
   },
-  returns: messageReturnValidator,
   handler: async (ctx, args) => {
-    const message = await ctx.db.get(args.messageId);
+    const message = await ctx.db.get(args.id);
     if (!message) {
       throw new Error("Message not found");
     }
@@ -67,51 +64,80 @@ export const getMessageById = query({
   },
 });
 
-export const deleteMessagesByChatIdAfterTimestamp = mutation({
+export const deleteMessageAfterTimestamp = mutation({
   args: {
     chatId: v.id("chats"),
     timestamp: v.number(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
-    for await (const message of ctx.db
+    await getAuthenticatedUser(ctx);
+
+    const messages = await ctx.db
       .query("messages")
-      .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))) {
-      if (message._creationTime > args.timestamp) {
-        await ctx.db.delete(message._id);
-      }
+      .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))
+      .collect();
+
+    const toDelete = messages.filter((m) => m._creationTime >= args.timestamp);
+
+    for (const message of toDelete) {
+      await ctx.db.delete(message._id);
     }
-    return null;
   },
 });
 
-/**
- * Delete all messages in a chat that were created after a given message.
- *
- * Data flow:
- * 1. Given a message id, fetch the message from the database
- * 2. Extract the chatId and _creationTime from the message
- * 3. Delete all messages in that chat with _creationTime > message._creationTime
- */
 export const deleteTrailingMessages = mutation({
   args: {
     id: v.id("messages"),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
+    await getAuthenticatedUser(ctx);
+
     const message = await ctx.db.get(args.id);
     if (!message) {
       throw new Error("Message not found");
     }
 
-    // Delete all messages in the same chat created after this message
-    for await (const msg of ctx.db
+    // Delete this message and all messages after it in the same chat
+    const messages = await ctx.db
       .query("messages")
-      .withIndex("by_chatId", (q) => q.eq("chatId", message.chatId))) {
-      if (msg._creationTime > message._creationTime) {
-        await ctx.db.delete(msg._id);
-      }
+      .withIndex("by_chatId", (q) => q.eq("chatId", message.chatId))
+      .collect();
+
+    const toDelete = messages.filter(
+      (m) => m._creationTime >= message._creationTime
+    );
+
+    for (const msg of toDelete) {
+      await ctx.db.delete(msg._id);
     }
-    return null;
+  },
+});
+
+export const MessageCountByUserIdInHours = query({
+  args: {
+    differenceInHours: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+
+    const cutOffTime = Date.now() - args.differenceInHours * 60 * 60 * 1000;
+
+    // Get user's chats
+    const chats = await ctx.db
+      .query("chats")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .collect();
+
+    let count = 0;
+    for (const chat of chats) {
+      const messages = await ctx.db
+        .query("messages")
+        .withIndex("by_chatId", (q) => q.eq("chatId", chat._id))
+        .collect();
+      count += messages.filter(
+        (m) => m._creationTime >= cutOffTime && m.role === "user"
+      ).length;
+    }
+    return count;
   },
 });

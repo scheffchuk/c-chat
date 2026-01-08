@@ -2,13 +2,10 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  users: defineTable({
-    name: v.string(),
-    tokenIdentifier: v.string(),
-  }).index("by_token", ["tokenIdentifier"]),
-
+  // Note: Better Auth manages users in the component's "user" table
+  // The app's tables reference Better Auth users via string IDs for flexibility
   chats: defineTable({
-    userId: v.id("users"),
+    userId: v.string(), // Better Auth user ID
     title: v.string(),
     visibility: v.union(v.literal("public"), v.literal("private")),
     lastContext: v.optional(v.string()),
@@ -21,22 +18,13 @@ export default defineSchema({
       v.literal("assistant"),
       v.literal("system")
     ),
-    parts: v.array(
-      v.union(
-        v.object({ type: v.literal("text"), text: v.string() }),
-        v.object({
-          type: v.literal("tool"),
-          name: v.string(),
-          args: v.object({}),
-        })
-      )
-    ),
-    attachments: v.array(
-      v.object({ type: v.literal("document"), documentId: v.id("documents") })
-    ),
+    // parts should be an array of objects with the following shape, change this to any if it is not working.
+    parts: v.any(),
+    attachments: v.any(),
   }).index("by_chatId", ["chatId"]),
+
   documents: defineTable({
-    userId: v.id("users"),
+    userId: v.string(), // Better Auth user ID
     title: v.string(),
     content: v.optional(v.string()),
     kind: v.union(
@@ -48,7 +36,7 @@ export default defineSchema({
   }).index("by_userId", ["userId"]),
 
   suggestions: defineTable({
-    userId: v.id("users"),
+    userId: v.string(), // Better Auth user ID
     documentId: v.id("documents"),
     originalText: v.string(),
     suggestedText: v.string(),
@@ -59,6 +47,9 @@ export default defineSchema({
     .index("by_documentId", ["documentId"]),
 
   streams: defineTable({
+    streamId: v.string(),
     chatId: v.id("chats"),
-  }).index("by_chatId", ["chatId"]),
+  })
+    .index("by_chatId", ["chatId"])
+    .index("by_streamId", ["streamId"]),
 });

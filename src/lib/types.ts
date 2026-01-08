@@ -25,6 +25,7 @@ export type CustomUIDataTypes = {
   clear: null;
   finish: null;
   usage: AppUsage;
+  chatId: string;
 };
 
 // TODO: Add tool types for ChatMessage

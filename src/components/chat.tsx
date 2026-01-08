@@ -1,23 +1,19 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { type DataUIPart, DefaultChatTransport } from "ai";
 import { Authenticated } from "convex/react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { chatModels, DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { ChatSDKError } from "@/lib/errors";
-import type { ChatMessage } from "@/lib/types";
+import type { ChatMessage, CustomUIDataTypes } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { fetchWithErrorHandlers } from "@/lib/utils";
 import { useDataStream } from "@/providers/data-stream-provider";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
-
-const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace(
-  /.cloud$/,
-  ".site"
-);
 
 export default function Chat({
   id,
@@ -28,7 +24,7 @@ export default function Chat({
   // autoResume,
   initialLastContext,
 }: {
-  id: string;
+  id?: string;
   initialMessages: ChatMessage[];
   initialChatModel: string;
   initialVisibilityType: "public" | "private";
@@ -36,12 +32,19 @@ export default function Chat({
   // autoResume: boolean;
   initialLastContext?: AppUsage;
 }) {
+  const router = useRouter();
   const { setDataStream } = useDataStream();
   // const [input, setInput] = useState<string>("");
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
-  const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
-  const [currentModelId, setCurrentModelId] = useState(initialChatModel);
+  const [currentModelId] = useState(initialChatModel);
   const currentModelIdRef = useRef(initialChatModel);
+
+  const [serverChatId, setServerChatId] = useState<string | null>(id ?? null);
+  const serverChatIdRef = useRef<string | null>(id ?? null);
+
+  useEffect(() => {
+    serverChatIdRef.current = serverChatId;
+  }, [serverChatId]);
 
   useEffect(() => {
     currentModelIdRef.current = currentModelId;
@@ -61,22 +64,61 @@ export default function Chat({
     experimental_throttle: 100,
     generateId: () => crypto.randomUUID(),
     transport: new DefaultChatTransport({
-      api: `${convexSiteUrl}/api/chat`,
-      fetch: fetchWithErrorHandlers,
-      prepareSendMessagesRequest: (request) => ({
-        body: {
-          id: request.id,
-          message: request.messages.at(-1),
-          selectedChatModel: currentModelIdRef.current,
-          selectedVisibilityType: initialVisibilityType,
-          ...request.body,
-        },
-      }),
+      api: "/api/chat",
+      fetch: (input, init) => {
+        // Better Auth handles cookies automatically, but we need to include credentials
+        const headers = new Headers(init?.headers);
+        return fetchWithErrorHandlers(input, {
+          ...init,
+          headers,
+          credentials: "include",
+        });
+      },
+      prepareSendMessagesRequest: (request) => {
+        const modelId = currentModelIdRef.current;
+        const isValidModel = chatModels.some((model) => model.id === modelId);
+        const selectedChatModel = isValidModel ? modelId : DEFAULT_CHAT_MODEL;
+
+        const lastMessage = request.messages.at(-1);
+        if (!lastMessage) {
+          throw new Error("No message to send");
+        }
+
+        // Ensure message has an ID
+        const message = {
+          ...lastMessage,
+          id: lastMessage.id || crypto.randomUUID(),
+        };
+
+        return {
+          body: {
+            id: serverChatIdRef.current ?? undefined,
+            clientId: request.id,
+            message,
+            selectedChatModel,
+            selectedVisibilityType: initialVisibilityType,
+          },
+        };
+      },
     }),
-    onData: (dataPart) => {
+    onData: (dataPart: DataUIPart<CustomUIDataTypes>) => {
       setDataStream((ds) => (ds ? [...ds, dataPart] : []));
       if (dataPart.type === "data-usage") {
         setUsage(dataPart.data);
+      }
+      if (
+        dataPart.type === "data-chatId" &&
+        typeof dataPart.data === "string"
+      ) {
+        const newId = dataPart.data;
+        if (newId !== serverChatIdRef.current) {
+          setServerChatId(newId);
+          if (id) {
+            window.history.replaceState({}, "", `/chat/${newId}`);
+          } else {
+            router.push(`/chat/${newId}`);
+          }
+        }
       }
     },
     // onFinish: () => {},
@@ -85,10 +127,9 @@ export default function Chat({
         if (
           error.message?.includes("AI Gateway requires a valid credit card")
         ) {
-          setShowCreditCardAlert(true);
-        } else {
           toast.error(error.message);
         }
+        return;
       }
     },
   });
@@ -106,7 +147,9 @@ export default function Chat({
       });
 
       setHasAppendedQuery(true);
-      window.history.replaceState({}, "", `/chat/${id}`);
+      if (id) {
+        window.history.replaceState({}, "", `/chat/${id}`);
+      }
     }
   }, [query, sendMessage, hasAppendedQuery, id]);
 
@@ -130,7 +173,7 @@ export default function Chat({
       <Authenticated>
         <div className="sticky z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
           <MultimodalInput
-            chatId={id}
+            chatId={serverChatId ?? id ?? ""}
             messages={messages}
             selectedModelId={currentModelId}
             selectedVisibilityType={initialVisibilityType}

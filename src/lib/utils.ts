@@ -1,8 +1,9 @@
-import type { UIMessage } from "ai";
+import type { UIMessage, UIMessagePart } from "ai";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { Doc } from "../../convex/_generated/dataModel";
 import { ChatSDKError, type ErrorCode } from "./errors";
-import type { ChatMessage } from "./types";
+import type { ChatMessage, CustomUIDataTypes } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -39,4 +40,17 @@ export async function fetchWithErrorHandlers(
 
 export function sanitizedText(text: string) {
   return text.replace("<has_function_call>", "");
+}
+
+export function convertToUIMessages(
+  messages: Doc<"messages">[]
+): ChatMessage[] {
+  return messages.map((message) => ({
+    id: message._id,
+    role: message.role as "user" | "assistant" | "system",
+    parts: message.parts as UIMessagePart<CustomUIDataTypes, never>[],
+    metadata: {
+      createdAt: message._creationTime,
+    },
+  }));
 }

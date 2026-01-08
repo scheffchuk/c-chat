@@ -1,104 +1,202 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { authComponent, getAuthenticatedUser } from "./auth";
 
-// TODO: Wrap them into QUERYS and MUTATIONS
-
-export const getChatsByUserId = query({
+export const saveChat = mutation({
   args: {
-    userId: v.id("users"),
+    title: v.string(),
+    visibility: v.union(v.literal("public"), v.literal("private")),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("chats"),
-      _creationTime: v.number(),
-      userId: v.id("users"),
-      title: v.string(),
-      visibility: v.union(v.literal("public"), v.literal("private")),
-      lastContext: v.optional(v.string()),
-    })
-  ),
-  handler: async (ctx, args) =>
-    await ctx.db
-      .query("chats")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .collect(),
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+
+    return await ctx.db.insert("chats", {
+      userId: user._id,
+      title: args.title,
+      visibility: args.visibility,
+      lastContext: undefined,
+    });
+  },
 });
 
 export const getChatById = query({
   args: {
     chatId: v.id("chats"),
   },
-  returns: v.object({
-    _id: v.id("chats"),
-    _creationTime: v.number(),
-    userId: v.id("users"),
-    title: v.string(),
-    visibility: v.union(v.literal("public"), v.literal("private")),
-    lastContext: v.optional(v.string()),
-  }),
+  handler: async (ctx, args) => await ctx.db.get(args.chatId),
+});
+
+export const getChatByIdForUser = query({
+  args: { chatId: v.id("chats") },
   handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
       throw new Error("Chat not found");
     }
+
+    if (chat.visibility === "private" && chat.userId !== user._id) {
+      throw new Error("Forbidden");
+    }
+
     return chat;
   },
 });
 
-export const saveChat = mutation({
+export const listChatsForUser = query({
   args: {
-    userId: v.id("users"),
-    title: v.string(),
-    visibility: v.union(v.literal("public"), v.literal("private")),
-    lastContext: v.optional(v.string()),
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.id("chats")),
   },
-  returns: v.id("chats"),
   handler: async (ctx, args) => {
-    const chatId = await ctx.db.insert("chats", {
-      userId: args.userId,
-      title: args.title,
-      visibility: args.visibility,
-      lastContext: args.lastContext,
-    });
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      return { chats: [], hasMore: false };
+    }
 
-    return chatId;
+    const limit = args.limit ?? 20;
+    let listQuery = ctx.db
+      .query("chats")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .order("desc");
+
+    if (args.cursor) {
+      const cursorChat = await ctx.db.get(args.cursor);
+      if (cursorChat) {
+        listQuery = ctx.db
+          .query("chats")
+          .withIndex("by_userId", (q) =>
+            q
+              .eq("userId", user._id)
+              .lt("_creationTime", cursorChat._creationTime)
+          )
+          .order("desc");
+      }
+    }
+
+    const chats = await listQuery.take(limit + 1);
+    const hasMore = chats.length > limit;
+    return {
+      chats: hasMore ? chats.slice(0, limit) : chats,
+      hasMore,
+    };
   },
 });
 
-export const deleteChatById = mutation({
-  args: {
-    chatId: v.id("chats"),
-  },
-  returns: v.null(),
+export const deleteChat = mutation({
+  args: { id: v.id("chats") },
   handler: async (ctx, args) => {
-    // Delete messages
-    for await (const message of ctx.db
+    const user = await getAuthenticatedUser(ctx);
+
+    const chat = await ctx.db.get(args.id);
+
+    if (!chat || chat.userId !== user._id) {
+      throw new Error("Not found or forbidden");
+    }
+
+    // Delete related messages
+    const messages = await ctx.db
       .query("messages")
-      .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))) {
+      .withIndex("by_chatId", (q) => q.eq("chatId", args.id))
+      .collect();
+
+    for (const message of messages) {
       await ctx.db.delete(message._id);
     }
-    // Delete streams
-    for await (const stream of ctx.db
+
+    // Delete related streams
+    const streams = await ctx.db
       .query("streams")
-      .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))) {
+      .withIndex("by_chatId", (q) => q.eq("chatId", args.id))
+      .collect();
+
+    for (const stream of streams) {
       await ctx.db.delete(stream._id);
     }
-    // Delete chat
-    await ctx.db.delete(args.chatId);
+
+    await ctx.db.delete(args.id);
     return null;
   },
 });
 
-export const updateChatContextById = mutation({
-  args: {
-    chatId: v.id("chats"),
-    lastContext: v.string(),
+export const deleteAllChatsForUser = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthenticatedUser(ctx);
+
+    // Delete all chats
+    const chats = await ctx.db
+      .query("chats")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .collect();
+
+    let deleteCount = 0;
+    for (const chat of chats) {
+      // Delete related messages
+      const messages = await ctx.db
+        .query("messages")
+        .withIndex("by_chatId", (q) => q.eq("chatId", chat._id))
+        .collect();
+
+      for (const message of messages) {
+        await ctx.db.delete(message._id);
+      }
+
+      // Delete related streams
+      const streams = await ctx.db
+        .query("streams")
+        .withIndex("by_chatId", (q) => q.eq("chatId", chat._id))
+        .collect();
+
+      for (const stream of streams) {
+        await ctx.db.delete(stream._id);
+      }
+
+      await ctx.db.delete(chat._id);
+      deleteCount += 1;
+    }
+
+    return { deleteCount };
   },
-  returns: v.null(),
+});
+
+export const updateVisibility = mutation({
+  args: {
+    id: v.id("chats"),
+    visibility: v.union(v.literal("public"), v.literal("private")),
+  },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.chatId, {
-      lastContext: args.lastContext,
+    const user = await getAuthenticatedUser(ctx);
+
+    const chat = await ctx.db.get(args.id);
+
+    if (!chat || chat.userId !== user._id) {
+      throw new Error("Not found or forbidden");
+    }
+
+    await ctx.db.patch(args.id, {
+      visibility: args.visibility,
     });
-    return null;
+  },
+});
+
+export const updateLastContext = mutation({
+  args: {
+    id: v.id("chats"),
+    context: v.any(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+
+    const chat = await ctx.db.get(args.id);
+
+    if (!chat || chat.userId !== user._id) {
+      throw new Error("Not found or forbidden");
+    }
+
+    await ctx.db.patch(args.id, {
+      lastContext: args.context,
+    });
   },
 });

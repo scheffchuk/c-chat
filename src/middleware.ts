@@ -1,6 +1,11 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-export default clerkMiddleware();
+// Better Auth handles sessions via cookies and route handlers
+// No authentication middleware needed - just pass through requests
+export function middleware(_request: NextRequest) {
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

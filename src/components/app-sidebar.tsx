@@ -1,11 +1,24 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
-import { ClockIcon, PlusIcon, SearchIcon } from "lucide-react";
+import {
+  ClockIcon,
+  LogOutIcon,
+  PlusIcon,
+  SearchIcon,
+  UserIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
+import { signOut, useAuth } from "@/lib/auth-client";
 import { useHoverSidebar } from "./hover-sidebar-context";
 import { ThemeToggle } from "./theme-toggle";
+import { Button } from "./ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -18,8 +31,7 @@ export function AppSidebar() {
   const router = useRouter();
   const { isCollapsed, isMobile, openMobile, setOpenMobile } =
     useHoverSidebar();
-
-  // TODO: handle delete chat?
+  const { user } = useAuth();
 
   const sidebarContent = (
     <>
@@ -83,48 +95,41 @@ export function AppSidebar() {
             </button>
           ))}
         </div>
-
-        {/* Starred Section */}
-        {/* <div className="mt-4 mb-2">
-          <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-150">
-            <StarIcon size={14} />
-            <span>Starred</span>
-          </button>
-        </div> */}
-
-        {/* Starred Items */}
-        {/* <div className="space-y-1">
-          {[
-            "Important project notes",
-            "Code snippets collection",
-          ].map((starred, index) => (
-            <button
-              key={index}
-              className="hover:bg-accent text-xs group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors duration-150"
-            >
-              <span className="text-muted-foreground truncate">{starred}</span>
-            </button>
-          ))}
-        </div> */}
       </nav>
 
       {/* Bottom Actions */}
       <div className="flex items-center justify-end border-border border-t py-3">
-        <UserButton
-          appearance={{
-            elements: {
-              userButtonTrigger: {
-                color: "var(--foreground)",
-              },
-            },
-          }}
-          showName={true}
-        />
-
-        {/* <button className="hover:bg-accent text-muted-foreground text-xs flex w-full items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-150">
-          <SettingsIcon size={14} />
-          <span>Settings</span>
-        </button> */}
+        {user && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="flex items-center gap-2 px-2" variant="ghost">
+                <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  {user.image ? (
+                    <img
+                      alt={user.name ?? "User"}
+                      className="size-8 rounded-full"
+                      height={32}
+                      src={user.image}
+                      width={32}
+                    />
+                  ) : (
+                    <UserIcon size={16} />
+                  )}
+                </div>
+                <span className="text-sm">{user.name}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => signOut()}
+              >
+                <LogOutIcon className="mr-2" size={14} />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </>
   );
