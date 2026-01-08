@@ -50,7 +50,12 @@ export const listChatsForUser = query({
     cursor: v.optional(v.id("chats")),
   },
   handler: async (ctx, args) => {
-    const user = await authComponent.getAuthUser(ctx);
+    let user;
+    try {
+      user = await authComponent.getAuthUser(ctx);
+    } catch {
+      return { chats: [], hasMore: false };
+    }
     if (!user) {
       return { chats: [], hasMore: false };
     }

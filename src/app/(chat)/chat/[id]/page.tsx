@@ -13,18 +13,19 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { id } = use(params);
 
-  const currentUser = useQuery(api.users.getCurrentUser, {});
+  const currentUser = useQuery(
+    api.users.getCurrentUser,
+    isAuthenticated ? {} : "skip"
+  );
   const chat = useQuery(api.chats.getChatById, { chatId: id as Id<"chats"> });
   const messages = useQuery(api.messages.getMessagesByChatId, {
     chatId: id as Id<"chats">,
   });
 
-  if (
-    isLoading ||
-    currentUser === undefined ||
-    chat === undefined ||
-    messages === undefined
-  ) {
+  if (isLoading || chat === undefined || messages === undefined) {
+    return null;
+  }
+  if (currentUser === undefined) {
     return null;
   }
   if (!chat) {
