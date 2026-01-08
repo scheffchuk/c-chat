@@ -14,7 +14,7 @@ import type { ResumableStreamContext } from "resumable-stream/ioredis";
 import { createResumableStreamContext } from "resumable-stream/ioredis";
 import { fetchModels, type ModelCatalog } from "tokenlens";
 import { getUsage } from "tokenlens/helpers";
-import { uuidv4 } from "zod";
+import { v4 as uuidv4 } from "uuid";
 import type { VisibilityType } from "@/components/visibility-selector";
 import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompt";
@@ -59,6 +59,7 @@ export function getStreamContext() {
   return globalStreamContext;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: complex chat API with multiple async operations
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
 
@@ -123,7 +124,12 @@ export async function POST(request: Request) {
         { token }
       );
     } else {
-      const title = await generateTitleFromUserMessage({ message });
+      let title = "New Chat";
+      try {
+        title = await generateTitleFromUserMessage({ message });
+      } catch (error) {
+        console.warn("Title generation failed, using fallback:", error);
+      }
 
       chatId = await fetchMutation(
         api.chats.saveChat,
@@ -250,27 +256,45 @@ export async function POST(request: Request) {
       },
       generateId: () => uuidv4().toString(),
       onFinish: async ({ messages }) => {
-        const filteredMessages = messages
-          .map((msg) => ({
-            chatId,
-            role: msg.role,
-            parts: msg.parts.filter(
-              (part) => part.type === "text" || part.type === "reasoning"
-            ),
-            attachments: [],
-          }))
-          .filter((msg) => msg.parts.length > 0);
+        try {
+          const filteredMessages = messages
+            .map((msg) => ({
+              chatId,
+              role: msg.role,
+              parts: (msg.parts ?? [])
+                .filter((part) => {
+                  // Only keep text/reasoning parts with actual content
+                  if (part.type === "text") {
+                    return part.text?.trim().length > 0;
+                  }
+                  if (part.type === "reasoning") {
+                    return part.text?.trim().length > 0;
+                  }
+                  return false;
+                })
+                .map((part) => {
+                  // Strip providerMetadata to reduce payload size
+                  if (part.type === "text") {
+                    return { type: "text" as const, text: part.text };
+                  }
+                  if (part.type === "reasoning") {
+                    return { type: "reasoning" as const, text: part.text };
+                  }
+                  return part;
+                }),
+              attachments: [],
+            }))
+            .filter((msg) => msg.parts.length > 0);
 
-        if (filteredMessages.length > 0) {
-          await fetchMutation(
-            api.messages.saveMessages,
-            { messages: filteredMessages },
-            { token }
-          );
-        }
+          if (filteredMessages.length > 0) {
+            await fetchMutation(
+              api.messages.saveMessages,
+              { messages: filteredMessages },
+              { token }
+            );
+          }
 
-        if (finalMergedUsage) {
-          try {
+          if (finalMergedUsage) {
             await fetchMutation(
               api.chats.updateLastContext,
               {
@@ -279,13 +303,9 @@ export async function POST(request: Request) {
               },
               { token }
             );
-          } catch (error) {
-            console.warn(
-              "Unable to persist last usage for chat",
-              chatId,
-              error
-            );
           }
+        } catch (error) {
+          console.error("Error in onFinish callback:", error);
         }
       },
       onError: () => "Oops, something went wrong. Please try again later.",

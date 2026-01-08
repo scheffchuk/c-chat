@@ -60,7 +60,7 @@ export default function Chat({
     // resumeStream,
   } = useChat<ChatMessage>({
     id,
-    messages: initialMessages,
+    initialMessages,
     experimental_throttle: 100,
     generateId: () => crypto.randomUUID(),
     transport: new DefaultChatTransport({

@@ -6,7 +6,7 @@ import { internalMutation, internalQuery } from "./_generated/server";
 export const createChat = internalMutation({
   args: {
     title: v.string(),
-    userId: v.id("users"),
+    userId: v.string(),
     visibility: v.union(v.literal("public"), v.literal("private")),
   },
   handler: async (ctx, args) =>
@@ -56,6 +56,7 @@ export const saveMessages = internalMutation({
         parts: v.array(
           v.union(
             v.object({ type: v.literal("text"), text: v.string() }),
+            v.object({ type: v.literal("reasoning"), text: v.string() }),
             v.object({
               type: v.literal("tool"),
               name: v.string(),
@@ -143,7 +144,7 @@ export const deleteChat = internalMutation({
 
 export const getMessageCountByUserId = internalQuery({
   args: {
-    userId: v.id("users"),
+    userId: v.string(),
     differenceInHours: v.number(),
   },
   handler: async (ctx, args) => {
@@ -179,7 +180,7 @@ export const saveDocument = internalMutation({
       v.literal("sheet")
     ),
     content: v.string(),
-    userId: v.id("users"),
+    userId: v.string(),
   },
   handler: async (ctx, args) =>
     await ctx.db.insert("documents", {
@@ -232,7 +233,7 @@ export const saveSuggestions = internalMutation({
   args: {
     suggestions: v.array(
       v.object({
-        userId: v.id("users"),
+        userId: v.string(),
         documentId: v.id("documents"),
         originalText: v.string(),
         suggestedText: v.string(),
