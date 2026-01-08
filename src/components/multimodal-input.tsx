@@ -235,9 +235,8 @@ function MultimodalInputInner({
     <div className={cn("relative flex w-full flex-col gap-4", className)}>
       {messages.length === 0 && !hasDraft && (
         <SuggestedActions
-          chatId={chatId}
           selectedVisibilityType={selectedVisibilityType}
-          sendMessage={sendMessage}
+          setInput={controller.textInput.setInput}
         />
       )}
 

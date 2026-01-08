@@ -1,19 +1,16 @@
 "use client";
 
-import type { UseChatHelpers } from "@ai-sdk/react";
 import { motion } from "motion/react";
 import { memo } from "react";
-import type { ChatMessage } from "@/lib/types";
 import { Suggestion } from "./ai-elements/suggestion";
 import type { VisibilityType } from "./visibility-selector";
 
 type SuggestedActionsProps = {
-  chatId: string;
-  sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
+  setInput: (v: string) => void;
   selectedVisibilityType: VisibilityType;
 };
 
-function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
+function PureSuggestedActions({ setInput }: SuggestedActionsProps) {
   const suggestedActions = [
     "人生の意味とは何か?",
     "AI（人工知能）とは？",
@@ -36,13 +33,7 @@ function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
         >
           <Suggestion
             className="h-auto w-full whitespace-normal p-3 text-left"
-            onClick={(suggestion) => {
-              window.history.pushState({}, "", `/chat/${chatId}`);
-              sendMessage({
-                role: "user",
-                parts: [{ type: "text", text: suggestion }],
-              });
-            }}
+            onClick={(suggestion) => setInput(suggestion)}
             suggestion={suggestedAction}
           >
             {suggestedAction}
@@ -55,15 +46,6 @@ function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
 
 export const SuggestedActions = memo(
   PureSuggestedActions,
-  (prevProps, nextProps) => {
-    if (prevProps.chatId !== nextProps.chatId) {
-      return false;
-    }
-
-    if (prevProps.selectedVisibilityType !== nextProps.selectedVisibilityType) {
-      return false;
-    }
-
-    return true;
-  }
+  (prevProps, nextProps) =>
+    prevProps.selectedVisibilityType === nextProps.selectedVisibilityType
 );
