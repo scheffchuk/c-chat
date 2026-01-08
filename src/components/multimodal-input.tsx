@@ -10,7 +10,18 @@ import { chatModels } from "@/lib/ai/models";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
-import { Context } from "./ai-elements/context";
+import {
+  Context,
+  ContextCacheUsage,
+  ContextContent,
+  ContextContentBody,
+  ContextContentFooter,
+  ContextContentHeader,
+  ContextInputUsage,
+  ContextOutputUsage,
+  ContextReasoningUsage,
+  ContextTrigger,
+} from "./ai-elements/context";
 import {
   PromptInput,
   PromptInputAttachments,
@@ -270,7 +281,19 @@ function MultimodalInputInner({
             modelId={modelId}
             usage={usage}
             usedTokens={usedTokens}
-          />
+          >
+            <ContextTrigger className="h-8 px-2 text-xs" />
+            <ContextContent align="end" side="top">
+              <ContextContentHeader />
+              <ContextContentBody className="space-y-1">
+                <ContextInputUsage />
+                <ContextOutputUsage />
+                <ContextReasoningUsage />
+                <ContextCacheUsage />
+              </ContextContentBody>
+              <ContextContentFooter />
+            </ContextContent>
+          </Context>
         </div>
 
         <PromptInputFooter className="border-top-0! p-1 shadow-none dark:border-0 dark:border-transparent!">

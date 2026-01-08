@@ -1,15 +1,17 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
-import { ArrowDownIcon } from "lucide-react";
 import { AnimatePresence } from "motion/react";
-import { memo, useEffect } from "react";
+import { memo } from "react";
 import { useMessages } from "@/hooks/use-messages";
 import type { ChatMessage } from "@/lib/types";
 import { useDataStream } from "@/providers/data-stream-provider";
-import { Conversation, ConversationContent } from "./ai-elements/conversation";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "./ai-elements/conversation";
 import Greeting from "./greeting";
 import { PreviewMessage, ThinkingMessage } from "./message";
-import { Button } from "./ui/button";
 
 type MessagesProps = {
   status: UseChatHelpers<ChatMessage>["status"];
@@ -29,32 +31,12 @@ export default function PureMessages({
   isReadOnly,
   selectedModelId,
 }: MessagesProps) {
-  const {
-    containerRef: messagesContainerRef,
-    endRef: messagesEndRef,
-    isAtBottom,
-    scrollToBottom,
-    hasSentMessage,
-  } = useMessages({ status });
+  const { endRef: messagesEndRef, hasSentMessage } = useMessages({ status });
 
   useDataStream();
 
-  useEffect(() => {
-    if (status === "submitted") {
-      requestAnimationFrame(() => {
-        const container = messagesContainerRef.current;
-        if (container) {
-          container.scrollTo({
-            top: container.scrollHeight,
-            behavior: "smooth",
-          });
-        }
-      });
-    }
-  }, [status, messagesContainerRef]);
-
   return (
-    <div className="overscroll-behavior-contain -webkit-overflow-scrolling-touch overflow-y-scrol flex-1 touch-pan-y">
+    <div className="overscroll-behavior-contain -webkit-overflow-scrolling-touch flex-1 touch-pan-y overflow-y-auto">
       <Conversation className="mx-auto flex min-w-0 max-w-4xl flex-col gap-4 md:gap-6">
         <ConversationContent>
           {messages.length === 0 && <Greeting />}
@@ -84,18 +66,9 @@ export default function PureMessages({
             ref={messagesEndRef}
           />
         </ConversationContent>
-      </Conversation>
 
-      {!isAtBottom && (
-        <Button
-          aria-label="Scroll to bottom"
-          className="-translate-x-1/2 absolute bottom-40 left-1/2 z-10 rounded-full border bg-bacground p-2 shadow-lg transition-colors hover:bg-muted"
-          onClick={() => scrollToBottom("smooth")}
-          type="button"
-        >
-          <ArrowDownIcon className="size-4" />
-        </Button>
-      )}
+        <ConversationScrollButton className="bottom-40 z-10 border bg-background shadow-lg hover:bg-muted" />
+      </Conversation>
     </div>
   );
 }

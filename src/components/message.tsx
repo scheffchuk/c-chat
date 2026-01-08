@@ -9,6 +9,7 @@ import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizedText } from "@/lib/utils";
 import { useDataStream } from "@/providers/data-stream-provider";
 import { MessageContent, MessageResponse } from "./ai-elements/message";
+import { Shimmer } from "./ai-elements/shimmer";
 import { MessageActionsMemo } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
@@ -216,7 +217,9 @@ export const ThinkingMessage = () => {
         </div>
 
         <div className="flex w-full flex-col gap-2 md:gap-4">
-          <div className="p-0 text-muted-foreground text-sm">Thinking...</div>
+          <Shimmer className="text-sm" duration={1}>
+            Thinking...
+          </Shimmer>
         </div>
       </div>
     </motion.div>
