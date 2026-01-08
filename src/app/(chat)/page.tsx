@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import {
   memo,
+  Suspense,
   startTransition,
   useCallback,
   useEffect,
@@ -39,6 +40,14 @@ import { createNewChat, saveChatModelAsCookie } from "./actions";
 const PENDING_MESSAGE_KEY = "pending-chat-message";
 
 export default function Page() {
+  return (
+    <Suspense>
+      <PageContent />
+    </Suspense>
+  );
+}
+
+function PageContent() {
   const [isPending, startCreateTransition] = useTransition();
   const [selectedModelId, setSelectedModelId] = useState(DEFAULT_CHAT_MODEL);
   const searchParams = useSearchParams();
