@@ -28,38 +28,20 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     isAuthenticated ? { chatId } : "skip"
   );
 
-  if (isLoading || chat === undefined || messages === undefined) {
+  if (isLoading || !chat || !messages || !currentUser) {
     return null;
   }
-  if (currentUser === undefined) {
-    return null;
-  }
-  if (!chat) {
+  if (currentUser._id !== chat.userId) {
     notFound();
   }
-
-  if (!(isAuthenticated && currentUser) || currentUser._id !== chat.userId) {
-    notFound();
-  }
-
-  const uiMessages = convertToUIMessages(
-    messages.map((message) => ({
-      _id: message._id,
-      chatId: message.chatId,
-      role: message.role,
-      parts: message.parts,
-      attachments: message.attachments,
-      _creationTime: message._creationTime,
-    }))
-  );
 
   return (
     <Chat
       id={chat._id}
       initialChatModel={DEFAULT_CHAT_MODEL}
-      initialMessages={uiMessages}
+      initialMessages={convertToUIMessages(messages)}
       initialVisibilityType={chat.visibility}
-      isReadonly={currentUser._id !== chat.userId}
+      isReadonly={false}
     />
   );
 }
