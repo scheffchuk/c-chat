@@ -1,22 +1,23 @@
-import { convexClient } from "@convex-dev/better-auth/client/plugins";
-import { createAuthClient } from "better-auth/react";
+"use client";
 
-export const authClient = createAuthClient({
-  plugins: [convexClient()],
-});
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useConvexAuth, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
-// Re-export auth methods as single source of truth
-export const { signIn, signOut, signUp, useSession } = authClient;
+// Re-export auth actions hook
+export { useAuthActions };
 
-// Derived auth state hook - single source of truth for client components
+// Auth state hook - single source of truth for client components
 export function useAuth() {
-  const { data: session, isPending, error } = useSession();
+  const { isLoading, isAuthenticated } = useConvexAuth();
+  const user = useQuery(
+    api.users.getCurrentUser,
+    isAuthenticated ? {} : "skip"
+  );
 
   return {
-    user: session?.user ?? null,
-    session,
-    isLoading: isPending,
-    isAuthenticated: !!session?.user,
-    error,
+    user: user ?? null,
+    isLoading: isLoading || (isAuthenticated && user === undefined),
+    isAuthenticated,
   };
 }

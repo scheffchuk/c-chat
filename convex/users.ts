@@ -1,23 +1,32 @@
-import { ConvexError } from "convex/values";
+import { v } from "convex/values";
 import { query } from "./_generated/server";
-import { authComponent } from "./auth";
+import { auth } from "./auth";
 
 /**
- * Get the current authenticated user from Better Auth.
- * This is the single source of truth for user data in Convex functions.
+ * Get the current authenticated user from Convex Auth.
  * Returns null if not authenticated.
  */
 export const getCurrentUser = query({
   args: {},
+  returns: v.union(
+    v.object({
+      _id: v.id("users"),
+      _creationTime: v.number(),
+      name: v.optional(v.string()),
+      image: v.optional(v.string()),
+      email: v.optional(v.string()),
+      emailVerificationTime: v.optional(v.number()),
+      phone: v.optional(v.string()),
+      phoneVerificationTime: v.optional(v.number()),
+      isAnonymous: v.optional(v.boolean()),
+    }),
+    v.null()
+  ),
   handler: async (ctx) => {
-    try {
-      return await authComponent.getAuthUser(ctx);
-    } catch (error) {
-      // getAuthUser throws ConvexError: Unauthenticated when not logged in
-      if (error instanceof ConvexError && error.data === "Unauthenticated") {
-        return null;
-      }
-      throw error;
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      return null;
     }
+    return await ctx.db.get(userId);
   },
 });

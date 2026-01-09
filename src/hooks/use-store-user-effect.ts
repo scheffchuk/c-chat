@@ -1,10 +1,10 @@
-import { useAuth } from "@/lib/auth-client";
+import { useConvexAuth } from "convex/react";
 
 /**
- * @deprecated Use `useAuth` from `@/lib/auth-client` directly.
+ * @deprecated Use `useAuth` from `@/lib/auth-client` or `useConvexAuth` directly.
  * Kept for backwards compatibility during migration.
  */
 export function useStoreUserEffect() {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated } = useConvexAuth();
   return { isLoading, isAuthenticated };
 }

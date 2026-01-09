@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import ConvexClientProvider from "@/providers/convex-client-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 
@@ -54,32 +55,34 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      className={`${geistSans.variable} ${geistMono.variable} `}
-      lang="en"
-      suppressHydrationWarning
-    >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
-        {/* TweakCN Live Preview */}
-        <script
-          async
-          crossOrigin="anonymous"
-          src="https://tweakcn.com/live-preview.min.js"
-        />
-      </head>
-      <body className="antialiased">
-        <ConvexClientProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            disableTransitionOnChange
-            enableSystem
-          >
-            {children}
-          </ThemeProvider>
-        </ConvexClientProvider>
-      </body>
-    </html>
+    <ConvexAuthNextjsServerProvider>
+      <html
+        className={`${geistSans.variable} ${geistMono.variable} `}
+        lang="en"
+        suppressHydrationWarning
+      >
+        <head>
+          <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
+          {/* TweakCN Live Preview */}
+          <script
+            async
+            crossOrigin="anonymous"
+            src="https://tweakcn.com/live-preview.min.js"
+          />
+        </head>
+        <body className="antialiased">
+          <ConvexClientProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              disableTransitionOnChange
+              enableSystem
+            >
+              {children}
+            </ThemeProvider>
+          </ConvexClientProvider>
+        </body>
+      </html>
+    </ConvexAuthNextjsServerProvider>
   );
 }
