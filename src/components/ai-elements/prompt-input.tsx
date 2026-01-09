@@ -668,7 +668,7 @@ export const PromptInput = ({
 
   const ctx = useMemo<AttachmentsContext>(
     () => ({
-      files: files.map((item) => ({ ...item, id: item.id })),
+      files,
       add,
       remove,
       clear,

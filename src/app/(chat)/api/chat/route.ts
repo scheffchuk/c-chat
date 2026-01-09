@@ -165,48 +165,25 @@ export async function POST(request: Request) {
             functionId: "stream-text",
           },
           onFinish: async ({ usage }) => {
+            const writeUsage = (data: AppUsage | typeof usage) => {
+              finalMergedUsage = data;
+              datastream.write({ type: "data-usage", data: finalMergedUsage });
+            };
+
             try {
               const providers = await getTokenlensCatalog();
               const modelId = gateway(selectedChatModel).modelId;
-              if (!modelId) {
-                finalMergedUsage = usage;
-                datastream.write({
-                  type: "data-usage",
-                  data: finalMergedUsage,
-                });
+
+              if (!(modelId && providers)) {
+                writeUsage(usage);
                 return;
               }
 
-              if (!providers) {
-                finalMergedUsage = usage;
-                datastream.write({
-                  type: "data-usage",
-                  data: finalMergedUsage,
-                });
-                return;
-              }
-
-              const summary = getUsage({
-                modelId,
-                usage,
-                providers,
-              });
-              finalMergedUsage = {
-                ...usage,
-                ...summary,
-                modelId,
-              } as AppUsage;
-              datastream.write({
-                type: "data-usage",
-                data: finalMergedUsage,
-              });
+              const summary = getUsage({ modelId, usage, providers });
+              writeUsage({ ...usage, ...summary, modelId } as AppUsage);
             } catch (error) {
               console.warn("TokenLens enrichment failed", error);
-              finalMergedUsage = usage;
-              datastream.write({
-                type: "data-usage",
-                data: finalMergedUsage,
-              });
+              writeUsage(usage);
             }
           },
         });

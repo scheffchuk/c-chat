@@ -5,7 +5,7 @@ import { getAuthContext } from "@/lib/auth-server";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import { api } from "../../../../../../../convex/_generated/api";
-import type { Doc, Id } from "../../../../../../../convex/_generated/dataModel";
+import type { Id } from "../../../../../../../convex/_generated/dataModel";
 import { getStreamContext } from "../../route";
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: complex stream resumption logic
@@ -32,24 +32,19 @@ export async function GET(
     return new ChatSDKError("unauthorized:chat").toResponse();
   }
 
-  let chat: Doc<"chats"> | null = null;
-
-  try {
-    chat = await fetchQuery(
+  // Parallelize chat and user queries
+  const [chat, user] = await Promise.all([
+    fetchQuery(
       api.chats.getChatById,
       { chatId: chatId as Id<"chats"> },
       { token }
-    );
-  } catch {
-    return new ChatSDKError("not_found:chat").toResponse();
-  }
+    ),
+    fetchQuery(api.users.getCurrentUser, {}, { token }),
+  ]);
 
   if (!chat) {
     return new ChatSDKError("not_found:chat").toResponse();
   }
-
-  // Get current user to check ownership
-  const user = await fetchQuery(api.users.getCurrentUser, {}, { token });
   if (chat.visibility === "private" && chat.userId !== user?._id) {
     return new ChatSDKError("forbidden:chat").toResponse();
   }
@@ -63,12 +58,7 @@ export async function GET(
   if (streamIds.length === 0) {
     return new ChatSDKError("not_found:stream").toResponse();
   }
-
-  const recentStreamId = streamIds.at(-1);
-
-  if (!recentStreamId) {
-    return new ChatSDKError("not_found:stream").toResponse();
-  }
+  const recentStreamId = streamIds.at(-1)!;
 
   const emptyDataStream = createUIMessageStream<ChatMessage>({
     // biome-ignore lint/suspicious/noEmptyBlockStatements: "Has to be empty"

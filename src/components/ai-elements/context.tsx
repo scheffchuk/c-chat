@@ -228,163 +228,121 @@ export const ContextContentFooter = ({
   );
 };
 
-export type ContextInputUsageProps = ComponentProps<"div">;
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    value
+  );
 
-export const ContextInputUsage = ({
+const TokenUsageRow = ({
+  label,
+  tokens,
+  costUSD,
   className,
-  children,
   ...props
-}: ContextInputUsageProps) => {
-  const { usage, modelId } = useContextValue();
-  const inputTokens = usage?.inputTokens ?? 0;
-
-  if (children) {
-    return children;
-  }
-
-  if (!inputTokens) {
+}: ComponentProps<"div"> & {
+  label: string;
+  tokens: number;
+  costUSD?: number;
+}) => {
+  if (!tokens) {
     return null;
   }
-
-  const inputCost = modelId
-    ? getUsage({
-        modelId,
-        usage: { input: inputTokens, output: 0 },
-      }).costUSD?.totalUSD
-    : undefined;
-  const inputCostText = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(inputCost ?? 0);
-
   return (
     <div
       className={cn("flex items-center justify-between text-xs", className)}
       {...props}
     >
-      <span className="text-muted-foreground">Input</span>
-      <TokensWithCost costText={inputCostText} tokens={inputTokens} />
+      <span className="text-muted-foreground">{label}</span>
+      <TokensWithCost costText={formatCurrency(costUSD ?? 0)} tokens={tokens} />
     </div>
+  );
+};
+
+export type ContextInputUsageProps = ComponentProps<"div">;
+
+export const ContextInputUsage = ({
+  children,
+  ...props
+}: ContextInputUsageProps) => {
+  const { usage, modelId } = useContextValue();
+  const tokens = usage?.inputTokens ?? 0;
+  if (children) {
+    return children;
+  }
+  const costUSD = modelId
+    ? getUsage({ modelId, usage: { input: tokens, output: 0 } }).costUSD
+        ?.totalUSD
+    : undefined;
+  return (
+    <TokenUsageRow costUSD={costUSD} label="Input" tokens={tokens} {...props} />
   );
 };
 
 export type ContextOutputUsageProps = ComponentProps<"div">;
 
 export const ContextOutputUsage = ({
-  className,
   children,
   ...props
 }: ContextOutputUsageProps) => {
   const { usage, modelId } = useContextValue();
-  const outputTokens = usage?.outputTokens ?? 0;
-
+  const tokens = usage?.outputTokens ?? 0;
   if (children) {
     return children;
   }
-
-  if (!outputTokens) {
-    return null;
-  }
-
-  const outputCost = modelId
-    ? getUsage({
-        modelId,
-        usage: { input: 0, output: outputTokens },
-      }).costUSD?.totalUSD
+  const costUSD = modelId
+    ? getUsage({ modelId, usage: { input: 0, output: tokens } }).costUSD
+        ?.totalUSD
     : undefined;
-  const outputCostText = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(outputCost ?? 0);
-
   return (
-    <div
-      className={cn("flex items-center justify-between text-xs", className)}
+    <TokenUsageRow
+      costUSD={costUSD}
+      label="Output"
+      tokens={tokens}
       {...props}
-    >
-      <span className="text-muted-foreground">Output</span>
-      <TokensWithCost costText={outputCostText} tokens={outputTokens} />
-    </div>
+    />
   );
 };
 
 export type ContextReasoningUsageProps = ComponentProps<"div">;
 
 export const ContextReasoningUsage = ({
-  className,
   children,
   ...props
 }: ContextReasoningUsageProps) => {
   const { usage, modelId } = useContextValue();
-  const reasoningTokens = usage?.reasoningTokens ?? 0;
-
+  const tokens = usage?.reasoningTokens ?? 0;
   if (children) {
     return children;
   }
-
-  if (!reasoningTokens) {
-    return null;
-  }
-
-  const reasoningCost = modelId
-    ? getUsage({
-        modelId,
-        usage: { reasoningTokens },
-      }).costUSD?.totalUSD
+  const costUSD = modelId
+    ? getUsage({ modelId, usage: { reasoningTokens: tokens } }).costUSD
+        ?.totalUSD
     : undefined;
-  const reasoningCostText = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(reasoningCost ?? 0);
-
   return (
-    <div
-      className={cn("flex items-center justify-between text-xs", className)}
+    <TokenUsageRow
+      costUSD={costUSD}
+      label="Reasoning"
+      tokens={tokens}
       {...props}
-    >
-      <span className="text-muted-foreground">Reasoning</span>
-      <TokensWithCost costText={reasoningCostText} tokens={reasoningTokens} />
-    </div>
+    />
   );
 };
 
 export type ContextCacheUsageProps = ComponentProps<"div">;
 
 export const ContextCacheUsage = ({
-  className,
   children,
   ...props
 }: ContextCacheUsageProps) => {
   const { usage, modelId } = useContextValue();
-  const cacheTokens = usage?.cachedInputTokens ?? 0;
-
-  if (children) {
-    return children;
-  }
-
-  if (!cacheTokens) {
-    return null;
-  }
-
-  const cacheCost = modelId
-    ? getUsage({
-        modelId,
-        usage: { cacheReads: cacheTokens, input: 0, output: 0 },
-      }).costUSD?.totalUSD
+  const tokens = usage?.cachedInputTokens ?? 0;
+  if (children) return children;
+  const costUSD = modelId
+    ? getUsage({ modelId, usage: { cacheReads: tokens, input: 0, output: 0 } })
+        .costUSD?.totalUSD
     : undefined;
-  const cacheCostText = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(cacheCost ?? 0);
-
   return (
-    <div
-      className={cn("flex items-center justify-between text-xs", className)}
-      {...props}
-    >
-      <span className="text-muted-foreground">Cache</span>
-      <TokensWithCost costText={cacheCostText} tokens={cacheTokens} />
-    </div>
+    <TokenUsageRow costUSD={costUSD} label="Cache" tokens={tokens} {...props} />
   );
 };
 
