@@ -18,7 +18,7 @@ import { getUsage } from "tokenlens/helpers";
 import { v4 as uuidv4 } from "uuid";
 import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompt";
-import { getAuthContext } from "@/lib/auth-server";
+import { getToken } from "@/lib/auth-server";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     return new ChatSDKError("bad_request:api").toResponse();
   }
 
-  const token = await getAuthContext();
+  const token = await getToken();
   if (!token) {
     return new ChatSDKError("unauthorized:chat").toResponse();
   }

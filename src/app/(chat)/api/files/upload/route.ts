@@ -1,11 +1,11 @@
 import { fetchMutation, fetchQuery } from "convex/nextjs";
-import { getAuthContext } from "@/lib/auth-server";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
+import { getToken } from "@/lib/auth-server";
 
 export async function POST(request: Request) {
   // Single auth check
-  const token = await getAuthContext();
+  const token = await getToken();
   if (!token) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
