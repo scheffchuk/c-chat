@@ -14,6 +14,7 @@ import {
   useTransition,
 } from "react";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 import {
   PromptInput,
   PromptInputAttachments,
@@ -57,7 +58,7 @@ function PageContent() {
   useEffect(() => {
     if (query && !isPending) {
       const message: ChatMessage = {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         role: "user",
         parts: [{ type: "text", text: query }],
       };

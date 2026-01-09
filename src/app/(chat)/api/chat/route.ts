@@ -9,6 +9,7 @@ import {
   streamText,
 } from "ai";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { unstable_cache } from "next/cache";
 import { after } from "next/server";
 import type { ResumableStreamContext } from "resumable-stream/ioredis";
 import { createResumableStreamContext } from "resumable-stream/ioredis";
@@ -31,14 +32,18 @@ export const maxDuration = 60;
 
 let globalStreamContext: ResumableStreamContext | null = null;
 
-const getTokenlensCatalog = async (): Promise<ModelCatalog | undefined> => {
-  try {
-    return await fetchModels();
-  } catch (error) {
-    console.error("Error fetching tokenlens catalog", error);
-    return;
-  }
-};
+const getTokenlensCatalog = unstable_cache(
+  async (): Promise<ModelCatalog | undefined> => {
+    try {
+      return await fetchModels();
+    } catch (error) {
+      console.error("Error fetching tokenlens catalog", error);
+      return;
+    }
+  },
+  ["tokenlens-catalog"],
+  { revalidate: 3600 }
+);
 
 export function getStreamContext() {
   if (!globalStreamContext) {
@@ -84,29 +89,24 @@ export async function POST(request: Request) {
       selectedChatModel: ChatModel["id"];
     } = requestBody;
 
-    const user = await fetchQuery(api.users.getCurrentUser, {}, { token });
+    const chatId = id as Id<"chats">;
+
+    // Parallelize all initial queries
+    const [user, chat, messagesFromDb] = await Promise.all([
+      fetchQuery(api.users.getCurrentUser, {}, { token }),
+      fetchQuery(api.chats.getChatById, { chatId }, { token }),
+      fetchQuery(api.messages.getMessagesByChatId, { chatId }, { token }),
+    ]);
+
     if (!user) {
       return new ChatSDKError("unauthorized:chat").toResponse();
     }
-
-    const chatId = id as Id<"chats">;
-
-    // Chat must exist (created by client before sending first message)
-    const chat = await fetchQuery(api.chats.getChatById, { chatId }, { token });
-
     if (!chat) {
       return new ChatSDKError("not_found:chat").toResponse();
     }
-
     if (chat.userId !== user._id) {
       return new ChatSDKError("forbidden:chat").toResponse();
     }
-
-    const messagesFromDb = await fetchQuery(
-      api.messages.getMessagesByChatId,
-      { chatId },
-      { token }
-    );
 
     // Check if this is the first message (for title generation)
     const isFirstMessage = messagesFromDb.length === 0;
@@ -248,37 +248,50 @@ export async function POST(request: Request) {
             }))
             .filter((msg) => msg.parts.length > 0);
 
+          const promises: Promise<unknown>[] = [];
+
           if (filteredMessages.length > 0) {
-            await fetchMutation(
-              api.messages.saveMessages,
-              { messages: filteredMessages },
-              { token }
+            promises.push(
+              fetchMutation(
+                api.messages.saveMessages,
+                { messages: filteredMessages },
+                { token }
+              )
             );
           }
 
           if (finalMergedUsage) {
-            await fetchMutation(
-              api.chats.updateLastContext,
-              {
-                id: chatId,
-                context: finalMergedUsage,
-              },
-              { token }
+            promises.push(
+              fetchMutation(
+                api.chats.updateLastContext,
+                { id: chatId, context: finalMergedUsage },
+                { token }
+              )
             );
           }
 
-          // Generate title after first message
+          await Promise.all(promises);
+
+          // Generate title after first message (in background)
           if (isFirstMessage) {
-            try {
-              const title = await generateTitleFromUserMessage({ message });
-              await fetchMutation(
-                api.chats.updateTitle,
-                { id: chatId, title },
-                { token }
-              );
-            } catch (error) {
-              console.warn("Title generation failed:", error);
-            }
+            const messageForTitle = message;
+            const chatIdForTitle = chatId;
+            const tokenForTitle = token;
+
+            after(async () => {
+              try {
+                const title = await generateTitleFromUserMessage({
+                  message: messageForTitle,
+                });
+                await fetchMutation(
+                  api.chats.updateTitle,
+                  { id: chatIdForTitle, title },
+                  { token: tokenForTitle }
+                );
+              } catch (error) {
+                console.warn("Background title generation failed:", error);
+              }
+            });
           }
         } catch (error) {
           console.error("Error in onFinish callback:", error);

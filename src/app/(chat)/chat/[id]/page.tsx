@@ -12,15 +12,21 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { id } = use(params);
+  const chatId = id as Id<"chats">;
 
+  // Convex batches queries over the same WebSocket connection
   const currentUser = useQuery(
     api.users.getCurrentUser,
     isAuthenticated ? {} : "skip"
   );
-  const chat = useQuery(api.chats.getChatById, { chatId: id as Id<"chats"> });
-  const messages = useQuery(api.messages.getMessagesByChatId, {
-    chatId: id as Id<"chats">,
-  });
+  const chat = useQuery(
+    api.chats.getChatById,
+    isAuthenticated ? { chatId } : "skip"
+  );
+  const messages = useQuery(
+    api.messages.getMessagesByChatId,
+    isAuthenticated ? { chatId } : "skip"
+  );
 
   if (isLoading || chat === undefined || messages === undefined) {
     return null;
