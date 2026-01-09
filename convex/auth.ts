@@ -16,7 +16,7 @@ export const authComponent = createClient<DataModel>(components.betterAuth);
 export const createAuth = (ctx: GenericCtx<DataModel>) =>
   betterAuth({
     baseURL: siteUrl,
-    trustedOrigins: [siteUrl],
+    trustedOrigins: [siteUrl, "https://c-chat-six.vercel.app"],
     database: authComponent.adapter(ctx),
     emailAndPassword: {
       enabled: true,
