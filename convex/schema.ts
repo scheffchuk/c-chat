@@ -1,14 +1,15 @@
+import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  // Note: Better Auth manages users in the component's "user" table
-  // The app's tables reference Better Auth users via string IDs for flexibility
+  ...authTables,
+
   chats: defineTable({
-    userId: v.string(), // Better Auth user ID
+    userId: v.string(),
     title: v.string(),
     visibility: v.union(v.literal("public"), v.literal("private")),
-    lastContext: v.optional(v.any()), // Usage data: tokens, costs, context limits - shape varies by model
+    lastContext: v.optional(v.any()),
   }).index("by_userId", ["userId"]),
 
   messages: defineTable({
@@ -18,13 +19,12 @@ export default defineSchema({
       v.literal("assistant"),
       v.literal("system")
     ),
-    // parts should be an array of objects with the following shape, change this to any if it is not working.
     parts: v.any(),
     attachments: v.any(),
   }).index("by_chatId", ["chatId"]),
 
   documents: defineTable({
-    userId: v.string(), // Better Auth user ID
+    userId: v.string(),
     title: v.string(),
     content: v.optional(v.string()),
     kind: v.union(
@@ -36,7 +36,7 @@ export default defineSchema({
   }).index("by_userId", ["userId"]),
 
   suggestions: defineTable({
-    userId: v.string(), // Better Auth user ID
+    userId: v.string(),
     documentId: v.id("documents"),
     originalText: v.string(),
     suggestedText: v.string(),

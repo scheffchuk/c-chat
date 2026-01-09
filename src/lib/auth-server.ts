@@ -1,30 +1,30 @@
-import { convexBetterAuthNextJs } from "@convex-dev/better-auth/nextjs";
+import {
+  convexAuthNextjsMiddleware,
+  convexAuthNextjsToken,
+  createRouteMatcher,
+  isAuthenticatedNextjs,
+  nextjsMiddlewareRedirect,
+} from "@convex-dev/auth/nextjs/server";
 
-const authUtils = convexBetterAuthNextJs({
-  convexUrl: process.env.NEXT_PUBLIC_CONVEX_URL as string,
-  convexSiteUrl: process.env.NEXT_PUBLIC_CONVEX_SITE_URL as string,
+// Public routes that don't require authentication
+const isPublicRoute = createRouteMatcher(["/signin", "/signup"]);
+
+export const authMiddleware = convexAuthNextjsMiddleware(async (request) => {
+  // Allow public routes
+  if (isPublicRoute(request)) {
+    return;
+  }
+
+  // Redirect unauthenticated users to signin
+  if (!(await isAuthenticatedNextjs())) {
+    return nextjsMiddlewareRedirect(request, "/signin");
+  }
 });
 
-// Re-export all utilities
-export const {
-  handler,
-  preloadAuthQuery,
-  isAuthenticated,
-  getToken,
-  fetchAuthQuery,
-  fetchAuthMutation,
-  fetchAuthAction,
-} = authUtils;
-
 /**
- * Get auth context for API routes - single function for all auth needs.
- * Returns token if authenticated, null otherwise.
+ * Get auth token for server-side Convex calls.
+ * Returns token if authenticated, undefined otherwise.
  */
-export async function getAuthContext() {
-  const authenticated = await isAuthenticated();
-  if (!authenticated) {
-    return null;
-  }
-  const token = await getToken();
-  return token;
+export async function getToken() {
+  return await convexAuthNextjsToken();
 }

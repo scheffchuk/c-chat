@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuthActions } from "@convex-dev/auth/react";
 import {
   ClockIcon,
   LogOutIcon,
@@ -9,7 +10,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
-import { signOut, useAuth } from "@/lib/auth-client";
+import { useAuth } from "@/lib/auth-client";
 import { useHoverSidebar } from "./hover-sidebar-context";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
@@ -29,6 +30,7 @@ import {
 
 export function AppSidebar() {
   const router = useRouter();
+  const { signOut } = useAuthActions();
   const { isCollapsed, isMobile, openMobile, setOpenMobile } =
     useHoverSidebar();
   const { user } = useAuth();
@@ -116,7 +118,7 @@ export function AppSidebar() {
                     <UserIcon size={16} />
                   )}
                 </div>
-                <span className="text-sm">{user.name}</span>
+                <span className="text-sm">{user.name ?? user.email}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

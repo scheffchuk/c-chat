@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { titlePrompt } from "@/lib/ai/prompt";
-import { getAuthContext } from "@/lib/auth-server";
+import { getToken } from "@/lib/auth-server";
 import { getTextFromMessage } from "@/lib/utils";
 import { api } from "../../../convex/_generated/api";
 
@@ -33,7 +33,7 @@ export async function generateTitleFromUserMessage({
 export async function createNewChat(
   visibility: VisibilityType = "private"
 ): Promise<never> {
-  const token = await getAuthContext();
+  const token = await getToken();
   if (!token) {
     throw new Error("Unauthorized");
   }

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { authComponent, getAuthenticatedUser } from "./auth";
+import { auth, getAuthenticatedUser } from "./auth";
 
 export const saveChat = mutation({
   args: {
@@ -50,20 +50,15 @@ export const listChatsForUser = query({
     cursor: v.optional(v.id("chats")),
   },
   handler: async (ctx, args) => {
-    let user;
-    try {
-      user = await authComponent.getAuthUser(ctx);
-    } catch {
-      return { chats: [], hasMore: false };
-    }
-    if (!user) {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
       return { chats: [], hasMore: false };
     }
 
     const limit = args.limit ?? 20;
     let listQuery = ctx.db
       .query("chats")
-      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .order("desc");
 
     if (args.cursor) {
@@ -72,9 +67,7 @@ export const listChatsForUser = query({
         listQuery = ctx.db
           .query("chats")
           .withIndex("by_userId", (q) =>
-            q
-              .eq("userId", user._id)
-              .lt("_creationTime", cursorChat._creationTime)
+            q.eq("userId", userId).lt("_creationTime", cursorChat._creationTime)
           )
           .order("desc");
       }

@@ -1,6 +1,7 @@
 "use client";
 
-import { signIn, useAuth } from "@/lib/auth-client";
+import Link from "next/link";
+import { useAuth } from "@/lib/auth-client";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 
@@ -21,10 +22,10 @@ export default function NavBar() {
         )}
         {!(isLoading || isAuthenticated) && (
           <Button
+            asChild
             className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
-            onClick={() => signIn.social({ provider: "google" })}
           >
-            Sign In
+            <Link href="/signin">Sign In</Link>
           </Button>
         )}
         <ThemeToggle />

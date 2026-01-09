@@ -1,15 +1,25 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import {
+  convexAuthNextjsMiddleware,
+  createRouteMatcher,
+  isAuthenticatedNextjs,
+  nextjsMiddlewareRedirect,
+} from "@convex-dev/auth/nextjs/server";
 
-// Better Auth handles sessions via cookies and route handlers
-// No authentication middleware needed - just pass through requests
-export function middleware(_request: NextRequest) {
-  return NextResponse.next();
-}
+const isPublicRoute = createRouteMatcher(["/signin", "/signup"]);
+
+export default convexAuthNextjsMiddleware(async (request) => {
+  if (isPublicRoute(request)) {
+    return;
+  }
+
+  if (!(await isAuthenticatedNextjs())) {
+    return nextjsMiddlewareRedirect(request, "/signin");
+  }
+});
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
+    // Skip Next.js internals and all static files
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     // Always run for API routes
     "/(api|trpc)(.*)",
