@@ -6,8 +6,10 @@ import type { DataModel } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import authConfig from "./auth.config";
 
-const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
-
+const siteUrl = process.env.SITE_URL;
+if (!siteUrl) {
+  throw new Error("SITE_URL is not set");
+}
 // Component client for integrating Convex with Better Auth
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
@@ -22,8 +24,8 @@ export const createAuth = (ctx: GenericCtx<DataModel>) =>
     },
     socialProviders: {
       google: {
-        clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+        clientId: process.env.GOOGLE_CLIENT_ID as string,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       },
     },
     plugins: [convex({ authConfig })],
