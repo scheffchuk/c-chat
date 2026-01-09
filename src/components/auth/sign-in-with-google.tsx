@@ -1,22 +1,31 @@
 "use client";
 
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export function SignInWithGoogle() {
   const { signIn } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
+  const isSigningIn = useRef(false);
 
   const handleSignIn = async () => {
+    // Prevent multiple concurrent sign-in attempts
+    if (isSigningIn.current) {
+      return;
+    }
+    isSigningIn.current = true;
     setIsLoading(true);
+
     try {
-      await signIn("google", { redirectTo: "/" });
+      // redirectTo is required for OAuth providers
+      await signIn("google", { redirectTo: window.location.origin });
     } catch {
       // Auth failed - reset loading state
-    } finally {
+      isSigningIn.current = false;
       setIsLoading(false);
     }
+    // Note: Don't reset on success - user will be redirected to Google
   };
 
   return (
