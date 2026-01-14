@@ -36,7 +36,7 @@ export default function PureMessages({
   useDataStream();
 
   return (
-    <div className="overscroll-behavior-contain -webkit-overflow-scrolling-touch flex-1 touch-pan-y overflow-y-auto">
+    <div className="overscroll-behavior-contain -webkit-overflow-scrolling-touch flex-1 touch-pan-y overflow-y-auto pb-32 md:pb-40">
       <Conversation className="mx-auto flex min-w-0 max-w-4xl flex-col gap-4 md:gap-6">
         <ConversationContent>
           {messages.length === 0 && <Greeting />}
@@ -67,7 +67,7 @@ export default function PureMessages({
           />
         </ConversationContent>
 
-        <ConversationScrollButton className="bottom-40 z-10 border bg-background shadow-lg hover:bg-muted" />
+        <ConversationScrollButton className="bottom-96 z-10 border bg-background shadow-lg hover:bg-muted md:bottom-[104]" />
       </Conversation>
     </div>
   );

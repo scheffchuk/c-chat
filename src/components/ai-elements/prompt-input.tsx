@@ -4,11 +4,9 @@ import type { ChatStatus, FileUIPart } from "ai";
 import {
   CornerDownLeftIcon,
   ImageIcon,
-  Loader2Icon,
   MicIcon,
   PaperclipIcon,
   PlusIcon,
-  SquareIcon,
   XIcon,
 } from "lucide-react";
 import { nanoid } from "nanoid";
@@ -61,6 +59,7 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Select,
   SelectContent,
@@ -998,9 +997,9 @@ export const PromptInputSubmit = ({
   let Icon = <CornerDownLeftIcon className="size-4" />;
 
   if (status === "submitted") {
-    Icon = <Loader2Icon className="size-4 animate-spin" />;
+    Icon = <LoadingSpinner size="sm" variant="enhanced" />;
   } else if (status === "streaming") {
-    Icon = <SquareIcon className="size-4" />;
+    Icon = <LoadingSpinner size="sm" variant="dots" />;
   } else if (status === "error") {
     Icon = <XIcon className="size-4" />;
   }

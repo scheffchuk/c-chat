@@ -5,11 +5,11 @@ import equal from "fast-deep-equal";
 import { SparklesIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { memo, useState } from "react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizedText } from "@/lib/utils";
 import { useDataStream } from "@/providers/data-stream-provider";
 import { MessageContent, MessageResponse } from "./ai-elements/message";
-import { Shimmer } from "./ai-elements/shimmer";
 import { MessageActionsMemo } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
@@ -53,11 +53,11 @@ const PurePreviewMessage = ({
           "justify-start": message.role === "assistant",
         })}
       >
-        {message.role === "assistant" && (
+        {/* {message.role === "assistant" && (
           <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
             <SparklesIcon size={14} />
           </div>
-        )}
+        )} */}
 
         <div
           className={cn("flex flex-col", {
@@ -65,7 +65,8 @@ const PurePreviewMessage = ({
               message.parts?.some(
                 (part) => part.type === "text" && part.text?.trim()
               ) ?? false,
-            "min-h-96": message.role === "assistant" && requiresScrollPadding,
+            "min-h-16 md:min-h-20 lg:min-h-24":
+              message.role === "assistant" && requiresScrollPadding,
             "w-full":
               (message.role === "assistant" &&
                 message.parts?.some(
@@ -217,9 +218,9 @@ export const ThinkingMessage = () => {
         </div>
 
         <div className="flex w-full flex-col gap-2 md:gap-4">
-          <Shimmer className="text-sm" duration={1}>
-            Thinking...
-          </Shimmer>
+          <div className="flex items-center gap-3">
+            <LoadingSpinner size="sm" variant="enhanced" />
+          </div>
         </div>
       </div>
     </motion.div>

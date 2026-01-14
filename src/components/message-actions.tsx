@@ -48,12 +48,14 @@ export function PureMessageActions({
               className="-left-10 focus-visible:opaity-100 absolute top-0 opacity-0 transition-opacity group-hover/message:opacity-100"
               data-testid="message-edit-button"
               onClick={() => setMode("edit")}
-              tooltip="Edit"
             >
               <PencilIcon size={16} />
             </MessageAction>
           )}
-          <MessageAction onClick={handleCopy}>
+          <MessageAction
+            className="opacity-0 transition-opacity group-hover/message:opacity-100"
+            onClick={handleCopy}
+          >
             <CopyIcon size={16} />
           </MessageAction>
         </div>

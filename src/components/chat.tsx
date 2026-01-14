@@ -123,7 +123,7 @@ export default function Chat({
         status={status}
       />
       <Authenticated>
-        <div className="mx-auto mb-14 w-full max-w-4xl gap-2 border-t-0 bg-background px-2 md:mb-18 md:px-4">
+        <div className="fixed right-0 bottom-0 left-0 z-20 mx-auto w-full max-w-4xl gap-2 border-t-0 bg-background/95 px-2 pb-4 backdrop-blur-sm md:px-4 md:pb-6">
           <MultimodalInput
             chatId={id}
             messages={messages}
