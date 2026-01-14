@@ -51,6 +51,7 @@ const PurePreviewMessage = ({
         className={cn("flex w-full items-start gap-2 md:gap-3", {
           "justify-end": message.role === "user" && mode !== "edit",
           "justify-start": message.role === "assistant",
+          "items-end": message.role === "user",
         })}
       >
         {/* {message.role === "assistant" && (
@@ -61,7 +62,7 @@ const PurePreviewMessage = ({
 
         <div
           className={cn("flex flex-col", {
-            "gap-2 md:gap-4":
+            "gap-1 md:gap-2":
               message.parts?.some(
                 (part) => part.type === "text" && part.text?.trim()
               ) ?? false,
@@ -80,7 +81,7 @@ const PurePreviewMessage = ({
         >
           {attachmentsFromMessage.length > 0 && (
             <div
-              className="flex flex-row justify-end gap-2"
+              className="flex flex-row justify-end gap-1"
               data-testid={"message-attachments"}
             >
               {attachmentsFromMessage.map((attachment) => (
@@ -212,16 +213,8 @@ export const ThinkingMessage = () => {
       initial={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
     >
-      <div className="flex items-start justify-start gap-3">
-        <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
-          <SparklesIcon size={14} />
-        </div>
-
-        <div className="flex w-full flex-col gap-2 md:gap-4">
-          <div className="flex items-center gap-3">
-            <LoadingSpinner size="sm" variant="enhanced" />
-          </div>
-        </div>
+      <div className="flex items-center gap-3">
+        <LoadingSpinner size="sm" variant="enhanced" />
       </div>
     </motion.div>
   );

@@ -41,11 +41,11 @@ export function PureMessageActions({
   // User messages get edit (on hover) and copy actions
   if (message.role === "user") {
     return (
-      <MessageActions>
-        <div className="relative">
+      <MessageActions className="justify-end">
+        <div className="flex items-center gap-1">
           {setMode && (
             <MessageAction
-              className="-left-10 focus-visible:opaity-100 absolute top-0 opacity-0 transition-opacity group-hover/message:opacity-100"
+              className="opacity-0 transition-opacity group-hover/message:opacity-100"
               data-testid="message-edit-button"
               onClick={() => setMode("edit")}
             >
@@ -64,10 +64,12 @@ export function PureMessageActions({
   }
 
   return (
-    <MessageActions className="-ml-0.5">
-      <MessageAction onClick={handleCopy}>
-        <CopyIcon />
-      </MessageAction>
+    <MessageActions className="justify-start">
+      <div className="flex items-center gap-1">
+        <MessageAction onClick={handleCopy}>
+          <CopyIcon />
+        </MessageAction>
+      </div>
     </MessageActions>
   );
 }
