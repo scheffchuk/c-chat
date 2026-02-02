@@ -24,6 +24,7 @@ import { ConnectedModelSelector } from "@/components/model-selector";
 import { PreviewAttachment } from "@/components/preview-attachment";
 import { Button } from "@/components/ui/button";
 import type { ChatMessage } from "@/lib/types";
+import { useModelStore } from "@/stores/model-store";
 import { createNewChat } from "./actions";
 
 const PENDING_MESSAGE_KEY = "pending-chat-message";
@@ -40,6 +41,7 @@ function PageContent() {
   const [isPending, startCreateTransition] = useTransition();
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
+  const selectedModelId = useModelStore((state) => state.selectedModelId);
 
   // Handle ?query= param: create chat and navigate
   useEffect(() => {
@@ -50,14 +52,17 @@ function PageContent() {
         parts: [{ type: "text", text: query }],
       };
       sessionStorage.setItem(PENDING_MESSAGE_KEY, JSON.stringify(message));
-      startCreateTransition(() => createNewChat("private"));
+      startCreateTransition(() => createNewChat("private", selectedModelId));
     }
-  }, [query, isPending]);
+  }, [query, isPending, selectedModelId]);
 
-  const handleSubmit = useCallback((message: ChatMessage) => {
-    sessionStorage.setItem(PENDING_MESSAGE_KEY, JSON.stringify(message));
-    startCreateTransition(() => createNewChat("private"));
-  }, []);
+  const handleSubmit = useCallback(
+    (message: ChatMessage) => {
+      sessionStorage.setItem(PENDING_MESSAGE_KEY, JSON.stringify(message));
+      startCreateTransition(() => createNewChat("private", selectedModelId));
+    },
+    [selectedModelId]
+  );
 
   if (query) {
     return null;

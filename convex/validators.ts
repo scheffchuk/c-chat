@@ -8,6 +8,7 @@ export const chatValidator = v.object({
   visibility: v.union(v.literal("public"), v.literal("private")),
   // Stores AppUsage from tokenlens - shape varies by provider
   lastContext: v.optional(v.any()),
+  selectedModelId: v.optional(v.string()),
 });
 
 // For saveMessages mutation args - the simplified parts we actually persist

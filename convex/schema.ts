@@ -11,6 +11,7 @@ export default defineSchema({
     visibility: v.union(v.literal("public"), v.literal("private")),
     // Stores AppUsage from tokenlens - shape varies by provider
     lastContext: v.optional(v.any()),
+    selectedModelId: v.optional(v.string()),
   }).index("by_userId", ["userId"]),
 
   messages: defineTable({

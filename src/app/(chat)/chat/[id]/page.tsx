@@ -38,7 +38,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   return (
     <Chat
       id={chat._id}
-      initialChatModel={DEFAULT_CHAT_MODEL}
+      initialChatModel={chat.selectedModelId || DEFAULT_CHAT_MODEL}
       initialMessages={convertToUIMessages(messages)}
       initialVisibilityType={chat.visibility}
       isReadonly={false}

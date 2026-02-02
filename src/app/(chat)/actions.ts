@@ -31,7 +31,8 @@ export async function generateTitleFromUserMessage({
 }
 
 export async function createNewChat(
-  visibility: VisibilityType = "private"
+  visibility: VisibilityType = "private",
+  selectedModelId?: string
 ): Promise<never> {
   const token = await getToken();
   if (!token) {
@@ -40,7 +41,7 @@ export async function createNewChat(
 
   const chatId = await fetchMutation(
     api.chats.saveChat,
-    { title: "New Chat", visibility },
+    { title: "New Chat", visibility, selectedModelId },
     { token }
   );
 

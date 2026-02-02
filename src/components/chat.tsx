@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { type DataUIPart, DefaultChatTransport } from "ai";
-import { Authenticated } from "convex/react";
+import { Authenticated, useMutation } from "convex/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { chatModels, DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
@@ -12,6 +12,8 @@ import type { AppUsage } from "@/lib/usage";
 import { fetchWithErrorHandlers } from "@/lib/utils";
 import { useDataStream } from "@/providers/data-stream-provider";
 import { useModelStore } from "@/stores/model-store";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
 
@@ -37,12 +39,29 @@ export default function Chat({
   const reasoningEffort = useModelStore((state) => state.reasoningEffort);
   const maxSteps = useModelStore((state) => state.maxSteps);
   const hasSentPendingMessage = useRef(false);
+  const updateSelectedModel = useMutation(api.chats.updateSelectedModel);
+  const previousModelIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (initialChatModel) {
       setSelectedModel(initialChatModel);
+      previousModelIdRef.current = initialChatModel;
     }
   }, [initialChatModel, setSelectedModel]);
+
+  useEffect(() => {
+    if (
+      selectedModelId &&
+      selectedModelId !== previousModelIdRef.current &&
+      previousModelIdRef.current !== null
+    ) {
+      updateSelectedModel({
+        id: id as Id<"chats">,
+        selectedModelId,
+      });
+      previousModelIdRef.current = selectedModelId;
+    }
+  }, [selectedModelId, id, updateSelectedModel]);
 
   const { messages, setMessages, sendMessage, status, stop, regenerate } =
     useChat<ChatMessage>({

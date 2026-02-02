@@ -8,6 +8,7 @@ export const saveChat = mutation({
   args: {
     title: v.string(),
     visibility: v.union(v.literal("public"), v.literal("private")),
+    selectedModelId: v.optional(v.string()),
   },
   returns: v.id("chats"),
   handler: async (ctx, args) => {
@@ -18,6 +19,7 @@ export const saveChat = mutation({
       title: args.title,
       visibility: args.visibility,
       lastContext: undefined,
+      selectedModelId: args.selectedModelId,
     });
   },
 });
@@ -223,6 +225,27 @@ export const updateTitle = mutation({
 
     await ctx.db.patch(args.id, {
       title: args.title,
+    });
+  },
+});
+
+export const updateSelectedModel = mutation({
+  args: {
+    id: v.id("chats"),
+    selectedModelId: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+
+    const chat = await ctx.db.get(args.id);
+
+    if (!chat || chat.userId !== user._id) {
+      throw new Error("Not found or forbidden");
+    }
+
+    await ctx.db.patch(args.id, {
+      selectedModelId: args.selectedModelId,
     });
   },
 });
