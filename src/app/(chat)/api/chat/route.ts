@@ -20,7 +20,7 @@ import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompt";
 import { getToken } from "@/lib/auth-server";
 import { ChatSDKError } from "@/lib/errors";
-import type { ChatMessage } from "@/lib/types";
+import type { ChatMessage, SavedMessagePart } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages } from "@/lib/utils";
 import { api } from "../../../../../convex/_generated/api";
@@ -122,25 +122,19 @@ export async function POST(request: Request) {
       country,
     };
 
-    const filteredUserParts = (message.parts ?? [])
-      .filter((part) => {
-        if (part.type === "text") {
-          return part.text?.trim().length > 0;
-        }
-        if (part.type === "reasoning") {
-          return part.text?.trim().length > 0;
-        }
-        return false;
-      })
-      .map((part) => {
-        if (part.type === "text") {
-          return { type: "text" as const, text: part.text };
-        }
-        if (part.type === "reasoning") {
-          return { type: "reasoning" as const, text: part.text };
-        }
-        return part;
-      });
+    type AnyPart = { type: string; text?: string };
+
+    const isTextOrReasoningPart = (part: AnyPart): part is SavedMessagePart =>
+      (part.type === "text" || part.type === "reasoning") &&
+      typeof part.text === "string";
+
+    const toSavedParts = (parts: AnyPart[]): SavedMessagePart[] =>
+      parts
+        .filter(isTextOrReasoningPart)
+        .filter((part) => part.text.trim().length > 0)
+        .map((part) => ({ type: part.type, text: part.text }));
+
+    const filteredUserParts = toSavedParts((message.parts ?? []) as AnyPart[]);
 
     if (filteredUserParts.length > 0) {
       await fetchMutation(
@@ -220,29 +214,16 @@ export async function POST(request: Request) {
       generateId: () => uuidv4().toString(),
       onFinish: async ({ messages }) => {
         try {
-          const filteredMessages = messages
+          const filteredMessages: Array<{
+            chatId: Id<"chats">;
+            role: ChatMessage["role"];
+            parts: SavedMessagePart[];
+            attachments: unknown[];
+          }> = messages
             .map((msg) => ({
               chatId,
               role: msg.role,
-              parts: (msg.parts ?? [])
-                .filter((part) => {
-                  if (part.type === "text") {
-                    return part.text?.trim().length > 0;
-                  }
-                  if (part.type === "reasoning") {
-                    return part.text?.trim().length > 0;
-                  }
-                  return false;
-                })
-                .map((part) => {
-                  if (part.type === "text") {
-                    return { type: "text" as const, text: part.text };
-                  }
-                  if (part.type === "reasoning") {
-                    return { type: "reasoning" as const, text: part.text };
-                  }
-                  return part;
-                }),
+              parts: toSavedParts((msg.parts ?? []) as AnyPart[]),
               attachments: [],
             }))
             .filter((msg) => msg.parts.length > 0);
