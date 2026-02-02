@@ -4,15 +4,7 @@ import { Authenticated } from "convex/react";
 import { ArrowUpIcon, PaperclipIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { useSearchParams } from "next/navigation";
-import {
-  memo,
-  Suspense,
-  startTransition,
-  useCallback,
-  useEffect,
-  useState,
-  useTransition,
-} from "react";
+import { Suspense, useCallback, useEffect, useTransition } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -20,10 +12,6 @@ import {
   PromptInputAttachments,
   PromptInputFooter,
   PromptInputProvider,
-  PromptInputSelect,
-  PromptInputSelectContent,
-  PromptInputSelectItem,
-  PromptInputSelectTrigger,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
@@ -32,11 +20,11 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Suggestion } from "@/components/ai-elements/suggestion";
 import Greeting from "@/components/greeting";
+import { ConnectedModelSelector } from "@/components/model-selector";
 import { PreviewAttachment } from "@/components/preview-attachment";
 import { Button } from "@/components/ui/button";
-import { chatModels, DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import type { ChatMessage } from "@/lib/types";
-import { createNewChat, saveChatModelAsCookie } from "./actions";
+import { createNewChat } from "./actions";
 
 const PENDING_MESSAGE_KEY = "pending-chat-message";
 
@@ -50,7 +38,6 @@ export default function Page() {
 
 function PageContent() {
   const [isPending, startCreateTransition] = useTransition();
-  const [selectedModelId, setSelectedModelId] = useState(DEFAULT_CHAT_MODEL);
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
 
@@ -84,12 +71,7 @@ function PageContent() {
       <Authenticated>
         <div className="mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
           <PromptInputProvider>
-            <NewChatInput
-              isPending={isPending}
-              onModelChange={setSelectedModelId}
-              onSubmit={handleSubmit}
-              selectedModelId={selectedModelId}
-            />
+            <NewChatInput isPending={isPending} onSubmit={handleSubmit} />
           </PromptInputProvider>
         </div>
       </Authenticated>
@@ -105,13 +87,9 @@ const suggestedActions = [
 ];
 
 function NewChatInput({
-  selectedModelId,
-  onModelChange,
   onSubmit,
   isPending,
 }: {
-  selectedModelId: string;
-  onModelChange: (modelId: string) => void;
   onSubmit: (message: ChatMessage) => void;
   isPending: boolean;
 }) {
@@ -229,8 +207,6 @@ function NewChatInput({
     [isPending, onSubmit, processFilePart]
   );
 
-  const isReasoningModel = selectedModelId === "chat-model-reasoning";
-
   return (
     <div className="relative flex w-full flex-col gap-4">
       {!hasDraft && (
@@ -292,7 +268,7 @@ function NewChatInput({
             <Button
               className="aspect-square h-8 rounded-lg p-1 transition-colors hover:bg-accent"
               data-testid="attachments-button"
-              disabled={isPending || isReasoningModel}
+              disabled={isPending}
               onClick={(event) => {
                 event.preventDefault();
                 attachments.openFileDialog();
@@ -301,10 +277,7 @@ function NewChatInput({
             >
               <PaperclipIcon size={14} style={{ width: 14, height: 14 }} />
             </Button>
-            <ModelSelector
-              onModelChange={onModelChange}
-              selectedModelId={selectedModelId}
-            />
+            <ConnectedModelSelector disabled={isPending} />
           </PromptInputTools>
 
           <PromptInputSubmit
@@ -320,57 +293,3 @@ function NewChatInput({
     </div>
   );
 }
-
-function PureModelSelector({
-  selectedModelId,
-  onModelChange,
-}: {
-  selectedModelId: string;
-  onModelChange: (modelId: string) => void;
-}) {
-  const [optimisticModelId, setOptimisticModelId] = useState(selectedModelId);
-
-  useEffect(() => {
-    setOptimisticModelId(selectedModelId);
-  }, [selectedModelId]);
-
-  const selectedModel = chatModels.find(
-    (model) => model.id === optimisticModelId
-  );
-
-  return (
-    <PromptInputSelect
-      onValueChange={(modelName) => {
-        const model = chatModels.find((m) => m.name === modelName);
-        if (model) {
-          setOptimisticModelId(model.id);
-          onModelChange(model.id);
-          startTransition(() => {
-            saveChatModelAsCookie(model.id);
-          });
-        }
-      }}
-      value={selectedModel?.name}
-    >
-      <PromptInputSelectTrigger className="h-8 px-2">
-        <span className="hidden font-medium text-xs sm:block">
-          {selectedModel?.name}
-        </span>
-      </PromptInputSelectTrigger>
-      <PromptInputSelectContent className="min-w-[260px] p-0">
-        <div className="flex flex-col gap-px">
-          {chatModels.map((model) => (
-            <PromptInputSelectItem key={model.id} value={model.name}>
-              <div className="truncate font-medium text-xs">{model.name}</div>
-              <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
-                {model.description}
-              </div>
-            </PromptInputSelectItem>
-          ))}
-        </div>
-      </PromptInputSelectContent>
-    </PromptInputSelect>
-  );
-}
-
-const ModelSelector = memo(PureModelSelector);

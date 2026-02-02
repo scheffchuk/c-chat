@@ -17,6 +17,7 @@ import type * as internal_ from "../internal.js";
 import type * as messages from "../messages.js";
 import type * as streams from "../streams.js";
 import type * as suggestions from "../suggestions.js";
+import type * as userPreferences from "../userPreferences.js";
 import type * as users from "../users.js";
 import type * as validators from "../validators.js";
 
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   messages: typeof messages;
   streams: typeof streams;
   suggestions: typeof suggestions;
+  userPreferences: typeof userPreferences;
   users: typeof users;
   validators: typeof validators;
 }>;

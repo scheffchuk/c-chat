@@ -57,4 +57,19 @@ export default defineSchema({
   })
     .index("by_chatId", ["chatId"])
     .index("by_streamId", ["streamId"]),
+
+  userPreferences: defineTable({
+    userId: v.string(),
+    favoriteModels: v.optional(v.array(v.string())),
+    selectedModelId: v.optional(v.string()),
+    reasoningEffort: v.optional(
+      v.union(
+        v.literal("none"),
+        v.literal("low"),
+        v.literal("medium"),
+        v.literal("high")
+      )
+    ),
+    maxSteps: v.optional(v.number()),
+  }).index("by_userId", ["userId"]),
 });

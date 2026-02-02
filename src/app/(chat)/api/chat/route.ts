@@ -63,6 +63,7 @@ export function getStreamContext() {
   return globalStreamContext;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: request flow and streaming logic
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
 
@@ -83,10 +84,14 @@ export async function POST(request: Request) {
       id,
       message,
       selectedChatModel,
+      reasoningEffort,
+      maxSteps,
     }: {
       id: string;
       message: ChatMessage;
       selectedChatModel: ChatModel["id"];
+      reasoningEffort?: "none" | "low" | "medium" | "high";
+      maxSteps?: number;
     } = requestBody;
 
     const chatId = id as Id<"chats">;
@@ -165,6 +170,14 @@ export async function POST(request: Request) {
 
     let finalMergedUsage: AppUsage | undefined;
 
+    const stepLimit = Math.min(Math.max(maxSteps ?? 5, 1), 10);
+    const providerOptions =
+      reasoningEffort &&
+      reasoningEffort !== "none" &&
+      selectedChatModel.startsWith("openai/")
+        ? { openai: { reasoningEffort } }
+        : undefined;
+
     const stream = createUIMessageStream({
       execute: ({ writer: datastream }) => {
         const result = streamText({
@@ -174,8 +187,9 @@ export async function POST(request: Request) {
             requestHints,
           }),
           messages: convertToModelMessages(uiMessages),
-          stopWhen: stepCountIs(5),
+          stopWhen: stepCountIs(stepLimit),
           experimental_transform: smoothStream({ chunking: "word" }),
+          providerOptions,
           experimental_telemetry: {
             isEnabled: true,
             functionId: "stream-text",

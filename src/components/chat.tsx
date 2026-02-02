@@ -11,6 +11,7 @@ import type { ChatMessage, CustomUIDataTypes } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { fetchWithErrorHandlers } from "@/lib/utils";
 import { useDataStream } from "@/providers/data-stream-provider";
+import { useModelStore } from "@/stores/model-store";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
 
@@ -31,13 +32,17 @@ export default function Chat({
 }) {
   const { setDataStream } = useDataStream();
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
-  const [currentModelId] = useState(initialChatModel);
-  const currentModelIdRef = useRef(initialChatModel);
+  const selectedModelId = useModelStore((state) => state.selectedModelId);
+  const setSelectedModel = useModelStore((state) => state.setSelectedModel);
+  const reasoningEffort = useModelStore((state) => state.reasoningEffort);
+  const maxSteps = useModelStore((state) => state.maxSteps);
   const hasSentPendingMessage = useRef(false);
 
   useEffect(() => {
-    currentModelIdRef.current = currentModelId;
-  }, [currentModelId]);
+    if (initialChatModel) {
+      setSelectedModel(initialChatModel);
+    }
+  }, [initialChatModel, setSelectedModel]);
 
   const { messages, setMessages, sendMessage, status, stop, regenerate } =
     useChat<ChatMessage>({
@@ -56,7 +61,7 @@ export default function Chat({
           });
         },
         prepareSendMessagesRequest: (request) => {
-          const modelId = currentModelIdRef.current;
+          const modelId = selectedModelId;
           const isValidModel = chatModels.some((model) => model.id === modelId);
           const selectedChatModel = isValidModel ? modelId : DEFAULT_CHAT_MODEL;
 
@@ -77,6 +82,8 @@ export default function Chat({
               message,
               selectedChatModel,
               selectedVisibilityType: initialVisibilityType,
+              reasoningEffort,
+              maxSteps,
             },
           };
         },
@@ -118,7 +125,7 @@ export default function Chat({
         isReadOnly={isReadonly}
         messages={messages}
         regenerate={regenerate}
-        selectedModelId={currentModelId}
+        selectedModelId={selectedModelId}
         setMessages={setMessages}
         status={status}
       />
@@ -127,7 +134,6 @@ export default function Chat({
           <MultimodalInput
             chatId={id}
             messages={messages}
-            selectedModelId={currentModelId}
             selectedVisibilityType={initialVisibilityType}
             sendMessage={sendMessage}
             setMessages={setMessages}

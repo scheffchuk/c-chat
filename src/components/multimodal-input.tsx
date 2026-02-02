@@ -3,13 +3,12 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import { ArrowUpIcon, CircleStop, PaperclipIcon } from "lucide-react";
-import { memo, startTransition, useCallback, useEffect, useState } from "react";
+import { memo, useCallback } from "react";
 import { toast } from "sonner";
-import { saveChatModelAsCookie } from "@/app/(chat)/actions";
-import { chatModels } from "@/lib/ai/models";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
+import { useModelStore } from "@/stores/model-store";
 import {
   Context,
   ContextCacheUsage,
@@ -27,16 +26,13 @@ import {
   PromptInputAttachments,
   PromptInputFooter,
   PromptInputProvider,
-  PromptInputSelect,
-  PromptInputSelectContent,
-  PromptInputSelectItem,
-  PromptInputSelectTrigger,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
   usePromptInputAttachments,
   usePromptInputController,
 } from "./ai-elements/prompt-input";
+import { ConnectedModelSelector } from "./model-selector";
 import { PreviewAttachment } from "./preview-attachment";
 import { SuggestedActions } from "./suggested-actions";
 import { Button } from "./ui/button";
@@ -45,7 +41,7 @@ import type { VisibilityType } from "./visibility-selector";
 const DEFAULT_MAX_TOKENS = 200_000;
 
 function PureMultimodalInput({
-  chatId,
+  chatId: _chatId,
   status,
   stop,
   messages,
@@ -53,8 +49,6 @@ function PureMultimodalInput({
   sendMessage,
   className,
   selectedVisibilityType,
-  selectedModelId,
-  onModelChange,
   usage,
 }: {
   chatId: string;
@@ -65,8 +59,6 @@ function PureMultimodalInput({
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   className?: string;
   selectedVisibilityType: VisibilityType;
-  selectedModelId: string;
-  onModelChange?: (modelId: string) => void;
   usage?: AppUsage;
 }) {
   const uploadFile = useCallback(async (file: File) => {
@@ -108,7 +100,7 @@ function PureMultimodalInput({
 
       // Convert blob URLs to Files and upload them
       const uploadedParts = await Promise.all(
-        // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <explanation>
+        // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: file upload flow
         message.files.map(async (filePart) => {
           if (!filePart.url) {
             return;
@@ -181,14 +173,10 @@ function PureMultimodalInput({
   return (
     <PromptInputProvider>
       <MultimodalInputInner
-        chatId={chatId}
         className={className}
         messages={messages}
-        onModelChange={onModelChange}
         onSubmit={handleSubmit}
-        selectedModelId={selectedModelId}
         selectedVisibilityType={selectedVisibilityType}
-        sendMessage={sendMessage}
         setMessages={setMessages}
         status={status}
         stop={stop}
@@ -199,26 +187,18 @@ function PureMultimodalInput({
 }
 
 function MultimodalInputInner({
-  chatId,
   className,
   messages,
-  onModelChange,
-  selectedModelId,
   selectedVisibilityType,
-  sendMessage,
   status,
   stop,
   onSubmit,
   setMessages,
   usage,
 }: {
-  chatId: string;
   className?: string;
   messages: UIMessage[];
-  onModelChange?: (modelId: string) => void;
-  selectedModelId: string;
   selectedVisibilityType: VisibilityType;
-  sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   status: UseChatHelpers<ChatMessage>["status"];
   stop: () => void;
   onSubmit: (message: {
@@ -230,6 +210,7 @@ function MultimodalInputInner({
 }) {
   const controller = usePromptInputController();
   const attachments = usePromptInputAttachments();
+  const selectedModelId = useModelStore((state) => state.selectedModelId);
 
   const modelId = usage?.modelId ?? selectedModelId;
   const usedTokens =
@@ -298,14 +279,8 @@ function MultimodalInputInner({
 
         <PromptInputFooter className="border-top-0! p-1 shadow-none dark:border-0 dark:border-transparent!">
           <PromptInputTools className="gap-0 sm:gap-0.5">
-            <AttachmentsButton
-              selectedModelId={selectedModelId}
-              status={status}
-            />
-            <ModelSelectorCompact
-              onModelChange={onModelChange}
-              selectedModelId={selectedModelId}
-            />
+            <AttachmentsButton status={status} />
+            <ConnectedModelSelector disabled={status !== "ready"} />
           </PromptInputTools>
 
           {status === "submitted" ? (
@@ -335,9 +310,6 @@ export const MultimodalInput = memo(
     if (prevProps.selectedVisibilityType !== nextProps.selectedVisibilityType) {
       return false;
     }
-    if (prevProps.selectedModelId !== nextProps.selectedModelId) {
-      return false;
-    }
     if (prevProps.messages.length !== nextProps.messages.length) {
       return false;
     }
@@ -348,19 +320,16 @@ export const MultimodalInput = memo(
 
 function PureAttachmentsButton({
   status,
-  selectedModelId,
 }: {
   status: UseChatHelpers<ChatMessage>["status"];
-  selectedModelId: string;
 }) {
   const attachments = usePromptInputAttachments();
-  const isReasoningModel = selectedModelId === "chat-model-reasoning";
 
   return (
     <Button
       className="aspect-square h-8 rounded-lg p-1 transition-colors hover:bg-accent"
       data-testid="attachments-button"
-      disabled={status !== "ready" || isReasoningModel}
+      disabled={status !== "ready"}
       onClick={(event) => {
         event.preventDefault();
         attachments.openFileDialog();
@@ -373,60 +342,6 @@ function PureAttachmentsButton({
 }
 
 const AttachmentsButton = memo(PureAttachmentsButton);
-
-function PureModelSelectorCompact({
-  selectedModelId,
-  onModelChange,
-}: {
-  selectedModelId: string;
-  onModelChange?: (modelId: string) => void;
-}) {
-  const [optimisticModelId, setOptimisticModelId] = useState(selectedModelId);
-
-  useEffect(() => {
-    setOptimisticModelId(selectedModelId);
-  }, [selectedModelId]);
-
-  const selectedModel = chatModels.find(
-    (model) => model.id === optimisticModelId
-  );
-
-  return (
-    <PromptInputSelect
-      onValueChange={(modelName) => {
-        const model = chatModels.find((m) => m.name === modelName);
-        if (model) {
-          setOptimisticModelId(model.id);
-          onModelChange?.(model.id);
-          startTransition(() => {
-            saveChatModelAsCookie(model.id);
-          });
-        }
-      }}
-      value={selectedModel?.name}
-    >
-      <PromptInputSelectTrigger className="h-8 px-2">
-        <span className="hidden font-medium text-xs sm:block">
-          {selectedModel?.name}
-        </span>
-      </PromptInputSelectTrigger>
-      <PromptInputSelectContent className="min-w-[260px] p-0">
-        <div className="flex flex-col gap-px">
-          {chatModels.map((model) => (
-            <PromptInputSelectItem key={model.id} value={model.name}>
-              <div className="truncate font-medium text-xs">{model.name}</div>
-              <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
-                {model.description}
-              </div>
-            </PromptInputSelectItem>
-          ))}
-        </div>
-      </PromptInputSelectContent>
-    </PromptInputSelect>
-  );
-}
-
-const ModelSelectorCompact = memo(PureModelSelectorCompact);
 
 function PureStopButton({
   stop,
