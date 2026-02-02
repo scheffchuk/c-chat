@@ -189,6 +189,7 @@ export function ModelSelector({
   const [dropdownPosition, setDropdownPosition] = useState({
     top: 0,
     left: 0,
+    bottom: 0,
     openAbove: false,
   });
   const [hasEverOpened, setHasEverOpened] = useState(false);
@@ -283,14 +284,16 @@ export function ModelSelector({
 
     if (spaceAbove > spaceBelow && spaceAbove >= dropdownHeight) {
       setDropdownPosition({
-        top: rect.top - dropdownHeight - 8,
+        top: 0,
         left: rect.left,
+        bottom: window.innerHeight - rect.top + 8,
         openAbove: true,
       });
     } else {
       setDropdownPosition({
         top: rect.bottom + 8,
         left: rect.left,
+        bottom: 0,
         openAbove: false,
       });
     }
@@ -467,6 +470,7 @@ export function ModelSelector({
       </button>
 
       {hasEverOpened &&
+        visible &&
         createPortal(
           isMobile ? (
             <>
@@ -662,7 +666,7 @@ export function ModelSelector({
                   ? undefined
                   : `${dropdownPosition.top}px`,
                 bottom: dropdownPosition.openAbove
-                  ? `${window.innerHeight - dropdownPosition.top}px`
+                  ? `${dropdownPosition.bottom}px`
                   : undefined,
                 left: `${dropdownPosition.left}px`,
               }}
