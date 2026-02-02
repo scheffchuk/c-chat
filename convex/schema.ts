@@ -9,6 +9,7 @@ export default defineSchema({
     userId: v.string(),
     title: v.string(),
     visibility: v.union(v.literal("public"), v.literal("private")),
+    // Stores AppUsage from tokenlens - shape varies by provider
     lastContext: v.optional(v.any()),
   }).index("by_userId", ["userId"]),
 
@@ -19,7 +20,11 @@ export default defineSchema({
       v.literal("assistant"),
       v.literal("system")
     ),
+    // AI SDK UIMessagePart is highly extensible with dynamic types like 'tool-${name}'.
+    // Using v.any() for schema compatibility. See: https://ai-sdk.dev/docs/reference/ai-sdk-core/ui-message
     parts: v.any(),
+    // AI SDK attachments can be FileUIPart, SourceUrlUIPart, etc.
+    // Using v.any() for flexibility with different attachment types.
     attachments: v.any(),
   }).index("by_chatId", ["chatId"]),
 

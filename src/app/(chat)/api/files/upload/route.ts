@@ -1,7 +1,7 @@
 import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { getToken } from "@/lib/auth-server";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
-import { getToken } from "@/lib/auth-server";
 
 export async function POST(request: Request) {
   // Single auth check

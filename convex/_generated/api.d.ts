@@ -18,6 +18,7 @@ import type * as messages from "../messages.js";
 import type * as streams from "../streams.js";
 import type * as suggestions from "../suggestions.js";
 import type * as users from "../users.js";
+import type * as validators from "../validators.js";
 
 import type {
   ApiFromModules,
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   streams: typeof streams;
   suggestions: typeof suggestions;
   users: typeof users;
+  validators: typeof validators;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

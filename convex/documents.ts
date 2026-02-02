@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthenticatedUser } from "./auth";
+import { auth, getAuthenticatedUser } from "./auth";
+import { documentValidator } from "./validators";
 
 export const saveDocument = mutation({
   args: {
@@ -13,6 +14,7 @@ export const saveDocument = mutation({
     ),
     content: v.string(),
   },
+  returns: v.id("documents"),
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
 
@@ -31,22 +33,37 @@ export const getDocumentById = query({
   args: {
     documentId: v.id("documents"),
   },
-  handler: async (ctx, args) => await ctx.db.get(args.documentId),
+  returns: v.union(documentValidator, v.null()),
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    const document = await ctx.db.get(args.documentId);
+    if (!document) {
+      return null;
+    }
+    // Only allow users to access their own documents
+    if (document.userId !== userId) {
+      return null;
+    }
+    return document;
+  },
 });
 
 export const getAllDocumentsById = query({
   args: {
     documentId: v.id("documents"),
   },
+  returns: v.array(documentValidator),
   handler: async (ctx, args) => {
-    // Get the document and all its versions (documents with same id pattern)
-    // In Convex, each document has a unique _id, so we just return the single doc
+    const userId = await auth.getUserId(ctx);
     const document = await ctx.db.get(args.documentId);
     if (!document) {
-      throw new Error("Document not found");
+      return [];
     }
-
-    return document ? [document] : [];
+    // Only allow users to access their own documents
+    if (document.userId !== userId) {
+      return [];
+    }
+    return [document];
   },
 });
 
@@ -55,6 +72,7 @@ export const deleteDocumentAfterTimestamp = mutation({
     documentId: v.id("documents"),
     timestamp: v.number(),
   },
+  returns: v.array(documentValidator),
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
 

@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
-import { getAuthenticatedUser } from "./auth";
+import { auth, getAuthenticatedUser } from "./auth";
+import { messageValidator, savedMessagePartValidator } from "./validators";
 
 export const saveMessages = mutation({
   args: {
@@ -14,13 +15,20 @@ export const saveMessages = mutation({
           v.literal("assistant"),
           v.literal("system")
         ),
-        parts: v.any(),
+        parts: v.array(savedMessagePartValidator),
+        // Attachments can vary (document refs, file metadata, etc.)
+        // Using v.any() for flexibility with different attachment shapes.
         attachments: v.any(),
       })
     ),
   },
+  returns: v.array(v.id("messages")),
   handler: async (ctx, args) => {
     await getAuthenticatedUser(ctx);
+
+    if (args.messages.length > 100) {
+      throw new Error("Cannot save more than 100 messages at once");
+    }
 
     const insertedIds: Id<"messages">[] = [];
 
@@ -41,7 +49,17 @@ export const getMessagesByChatId = query({
   args: {
     chatId: v.id("chats"),
   },
+  returns: v.array(messageValidator),
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    const chat = await ctx.db.get(args.chatId);
+    if (!chat) {
+      return [];
+    }
+    // Check visibility - only allow if public or user owns it
+    if (chat.visibility === "private" && chat.userId !== userId) {
+      return [];
+    }
     const messages = await ctx.db
       .query("messages")
       .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))
@@ -55,10 +73,20 @@ export const getMessageById = query({
   args: {
     id: v.id("messages"),
   },
+  returns: v.union(messageValidator, v.null()),
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
     const message = await ctx.db.get(args.id);
     if (!message) {
-      throw new Error("Message not found");
+      return null;
+    }
+    // Check chat visibility
+    const chat = await ctx.db.get(message.chatId);
+    if (!chat) {
+      return null;
+    }
+    if (chat.visibility === "private" && chat.userId !== userId) {
+      return null;
     }
     return message;
   },
@@ -69,17 +97,18 @@ export const deleteMessageAfterTimestamp = mutation({
     chatId: v.id("chats"),
     timestamp: v.number(),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     await getAuthenticatedUser(ctx);
 
     const messages = await ctx.db
       .query("messages")
-      .withIndex("by_chatId", (q) => q.eq("chatId", args.chatId))
+      .withIndex("by_chatId", (q) =>
+        q.eq("chatId", args.chatId).gte("_creationTime", args.timestamp)
+      )
       .collect();
 
-    const toDelete = messages.filter((m) => m._creationTime >= args.timestamp);
-
-    for (const message of toDelete) {
+    for (const message of messages) {
       await ctx.db.delete(message._id);
     }
   },
@@ -89,6 +118,7 @@ export const deleteTrailingMessages = mutation({
   args: {
     id: v.id("messages"),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     await getAuthenticatedUser(ctx);
 
@@ -100,14 +130,14 @@ export const deleteTrailingMessages = mutation({
     // Delete this message and all messages after it in the same chat
     const messages = await ctx.db
       .query("messages")
-      .withIndex("by_chatId", (q) => q.eq("chatId", message.chatId))
+      .withIndex("by_chatId", (q) =>
+        q
+          .eq("chatId", message.chatId)
+          .gte("_creationTime", message._creationTime)
+      )
       .collect();
 
-    const toDelete = messages.filter(
-      (m) => m._creationTime >= message._creationTime
-    );
-
-    for (const msg of toDelete) {
+    for (const msg of messages) {
       await ctx.db.delete(msg._id);
     }
   },
@@ -117,6 +147,7 @@ export const MessageCountByUserIdInHours = query({
   args: {
     differenceInHours: v.number(),
   },
+  returns: v.number(),
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
 
@@ -132,11 +163,11 @@ export const MessageCountByUserIdInHours = query({
     for (const chat of chats) {
       const messages = await ctx.db
         .query("messages")
-        .withIndex("by_chatId", (q) => q.eq("chatId", chat._id))
+        .withIndex("by_chatId", (q) =>
+          q.eq("chatId", chat._id).gte("_creationTime", cutOffTime)
+        )
         .collect();
-      count += messages.filter(
-        (m) => m._creationTime >= cutOffTime && m.role === "user"
-      ).length;
+      count += messages.filter((m) => m.role === "user").length;
     }
     return count;
   },

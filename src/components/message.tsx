@@ -2,7 +2,6 @@
 
 import type { UseChatHelpers } from "@ai-sdk/react";
 import equal from "fast-deep-equal";
-import { SparklesIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { memo, useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";

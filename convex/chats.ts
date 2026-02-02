@@ -1,12 +1,15 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { auth, getAuthenticatedUser } from "./auth";
+import { chatValidator } from "./validators";
 
 export const saveChat = mutation({
   args: {
     title: v.string(),
     visibility: v.union(v.literal("public"), v.literal("private")),
   },
+  returns: v.id("chats"),
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
 
@@ -23,11 +26,24 @@ export const getChatById = query({
   args: {
     chatId: v.id("chats"),
   },
-  handler: async (ctx, args) => await ctx.db.get(args.chatId),
+  returns: v.union(chatValidator, v.null()),
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    const chat = await ctx.db.get(args.chatId);
+    if (!chat) {
+      return null;
+    }
+    // Allow public chats or owned chats
+    if (chat.visibility === "private" && chat.userId !== userId) {
+      return null;
+    }
+    return chat;
+  },
 });
 
 export const getChatByIdForUser = query({
   args: { chatId: v.id("chats") },
+  returns: chatValidator,
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
 
@@ -46,44 +62,30 @@ export const getChatByIdForUser = query({
 
 export const listChatsForUser = query({
   args: {
-    limit: v.optional(v.number()),
-    cursor: v.optional(v.id("chats")),
+    paginationOpts: paginationOptsValidator,
   },
+  returns: v.object({
+    page: v.array(chatValidator),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) {
-      return { chats: [], hasMore: false };
+      return { page: [], isDone: true, continueCursor: null };
     }
 
-    const limit = args.limit ?? 20;
-    let listQuery = ctx.db
+    return await ctx.db
       .query("chats")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .order("desc");
-
-    if (args.cursor) {
-      const cursorChat = await ctx.db.get(args.cursor);
-      if (cursorChat) {
-        listQuery = ctx.db
-          .query("chats")
-          .withIndex("by_userId", (q) =>
-            q.eq("userId", userId).lt("_creationTime", cursorChat._creationTime)
-          )
-          .order("desc");
-      }
-    }
-
-    const chats = await listQuery.take(limit + 1);
-    const hasMore = chats.length > limit;
-    return {
-      chats: hasMore ? chats.slice(0, limit) : chats,
-      hasMore,
-    };
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });
 
 export const deleteChat = mutation({
   args: { id: v.id("chats") },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
 
@@ -120,6 +122,9 @@ export const deleteChat = mutation({
 
 export const deleteAllChatsForUser = mutation({
   args: {},
+  returns: v.object({
+    deleteCount: v.number(),
+  }),
   handler: async (ctx) => {
     const user = await getAuthenticatedUser(ctx);
 
@@ -164,6 +169,7 @@ export const updateVisibility = mutation({
     id: v.id("chats"),
     visibility: v.union(v.literal("public"), v.literal("private")),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
 
@@ -184,6 +190,7 @@ export const updateLastContext = mutation({
     id: v.id("chats"),
     context: v.any(),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
 
@@ -204,6 +211,7 @@ export const updateTitle = mutation({
     id: v.id("chats"),
     title: v.string(),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
 

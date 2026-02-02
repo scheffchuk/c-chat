@@ -1,12 +1,12 @@
 import { createUIMessageStream, JsonToSseTransformStream } from "ai";
 import { fetchQuery } from "convex/nextjs";
 import { differenceInSeconds } from "date-fns";
+import { getToken } from "@/lib/auth-server";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import { api } from "../../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../../convex/_generated/dataModel";
 import { getStreamContext } from "../../route";
-import { getToken } from "@/lib/auth-server";
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: complex stream resumption logic
 export async function GET(

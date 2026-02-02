@@ -10,7 +10,20 @@ export const messageMetadataSchema = z.object({
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
-// TODO: ADD types for tools: Document, Suggestions
+// Message part types matching AI SDK
+// See: https://ai-sdk.dev/docs/reference/ai-sdk-core/ui-message
+export type TextPart = { type: "text"; text: string };
+export type ReasoningPart = { type: "reasoning"; text: string };
+export type FilePart = {
+  type: "file";
+  mediaType: string;
+  url: string;
+  filename?: string;
+};
+
+// What we save to the database (subset of AI SDK parts)
+// Route filters AI SDK parts down to just text/reasoning before saving
+export type SavedMessagePart = TextPart | ReasoningPart;
 
 export type CustomUIDataTypes = {
   textDelta: string;
@@ -28,6 +41,7 @@ export type CustomUIDataTypes = {
   chatId: string;
 };
 
+// Full ChatMessage using AI SDK's UIMessage
 // TODO: Add tool types for ChatMessage
 export type ChatMessage = UIMessage<MessageMetadata, CustomUIDataTypes>;
 

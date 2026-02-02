@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
-import { getAuthenticatedUser } from "./auth";
+import { auth, getAuthenticatedUser } from "./auth";
+import { suggestionValidator } from "./validators";
 
 export const saveSuggestions = mutation({
   args: {
@@ -15,8 +16,13 @@ export const saveSuggestions = mutation({
       })
     ),
   },
+  returns: v.array(v.id("suggestions")),
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
+
+    if (args.suggestion.length > 100) {
+      throw new Error("Cannot save more than 100 suggestions at once");
+    }
 
     const insertedIds: Id<"suggestions">[] = [];
 
@@ -36,9 +42,20 @@ export const getSuggestionsByDocumentId = query({
   args: {
     documentId: v.id("documents"),
   },
-  handler: async (ctx, args) =>
-    await ctx.db
+  returns: v.array(suggestionValidator),
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    const document = await ctx.db.get(args.documentId);
+    if (!document) {
+      return [];
+    }
+    // Only allow users to access suggestions for their own documents
+    if (document.userId !== userId) {
+      return [];
+    }
+    return await ctx.db
       .query("suggestions")
       .withIndex("by_documentId", (q) => q.eq("documentId", args.documentId))
-      .collect(),
+      .collect();
+  },
 });

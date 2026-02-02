@@ -1,6 +1,13 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery } from "./_generated/server";
+import {
+  chatValidator,
+  documentValidator,
+  messageValidator,
+  savedMessagePartValidator,
+  suggestionValidator,
+} from "./validators";
 
 // Internal mutations that can be called from HTTP actions without authentication
 export const createChat = internalMutation({
@@ -9,6 +16,7 @@ export const createChat = internalMutation({
     userId: v.string(),
     visibility: v.union(v.literal("public"), v.literal("private")),
   },
+  returns: v.id("chats"),
   handler: async (ctx, args) =>
     await ctx.db.insert("chats", {
       title: args.title,
@@ -18,10 +26,11 @@ export const createChat = internalMutation({
     }),
 });
 
-export const getChatById = internalQuery({
+export const internalGetChatById = internalQuery({
   args: {
     chatId: v.id("chats"),
   },
+  returns: chatValidator,
   handler: async (ctx, args) => {
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
@@ -31,10 +40,11 @@ export const getChatById = internalQuery({
   },
 });
 
-export const getMessagesByChatId = internalQuery({
+export const internalGetMessagesByChatId = internalQuery({
   args: {
     chatId: v.id("chats"),
   },
+  returns: v.array(messageValidator),
   handler: async (ctx, args) =>
     await ctx.db
       .query("messages")
@@ -43,7 +53,7 @@ export const getMessagesByChatId = internalQuery({
       .collect(),
 });
 
-export const saveMessages = internalMutation({
+export const internalSaveMessages = internalMutation({
   args: {
     messages: v.array(
       v.object({
@@ -53,27 +63,19 @@ export const saveMessages = internalMutation({
           v.literal("assistant"),
           v.literal("system")
         ),
-        parts: v.array(
-          v.union(
-            v.object({ type: v.literal("text"), text: v.string() }),
-            v.object({ type: v.literal("reasoning"), text: v.string() }),
-            v.object({
-              type: v.literal("tool"),
-              name: v.string(),
-              args: v.object({}),
-            })
-          )
-        ),
-        attachments: v.array(
-          v.object({
-            type: v.literal("document"),
-            documentId: v.id("documents"),
-          })
-        ),
+        parts: v.array(savedMessagePartValidator),
+        // Attachments can vary (document refs, file metadata, etc.)
+        // Using v.any() for flexibility with different attachment shapes.
+        attachments: v.any(),
       })
     ),
   },
+  returns: v.array(v.id("messages")),
   handler: async (ctx, args) => {
+    if (args.messages.length > 100) {
+      throw new Error("Cannot save more than 100 messages at once");
+    }
+
     const insertedIds: Id<"messages">[] = [];
 
     for (const message of args.messages) {
@@ -89,6 +91,7 @@ export const createStream = internalMutation({
     streamId: v.string(),
     chatId: v.id("chats"),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.insert("streams", {
       streamId: args.streamId,
@@ -100,8 +103,10 @@ export const createStream = internalMutation({
 export const updateChatLastContext = internalMutation({
   args: {
     chatId: v.id("chats"),
+    // Stores AppUsage from tokenlens - shape varies by provider
     context: v.any(),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.patch(args.chatId, {
       lastContext: args.context,
@@ -113,6 +118,7 @@ export const deleteChat = internalMutation({
   args: {
     chatId: v.id("chats"),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const chat = await ctx.db.get(args.chatId);
     if (!chat) {
@@ -147,6 +153,7 @@ export const getMessageCountByUserId = internalQuery({
     userId: v.string(),
     differenceInHours: v.number(),
   },
+  returns: v.number(),
   handler: async (ctx, args) => {
     const cutOffTime = Date.now() - args.differenceInHours * 60 * 60 * 1000;
 
@@ -160,11 +167,11 @@ export const getMessageCountByUserId = internalQuery({
     for (const chat of chats) {
       const messages = await ctx.db
         .query("messages")
-        .withIndex("by_chatId", (q) => q.eq("chatId", chat._id))
+        .withIndex("by_chatId", (q) =>
+          q.eq("chatId", chat._id).gte("_creationTime", cutOffTime)
+        )
         .collect();
-      count += messages.filter(
-        (m) => m._creationTime >= cutOffTime && m.role === "user"
-      ).length;
+      count += messages.filter((m) => m.role === "user").length;
     }
     return count;
   },
@@ -182,6 +189,7 @@ export const saveDocument = internalMutation({
     content: v.string(),
     userId: v.string(),
   },
+  returns: v.id("documents"),
   handler: async (ctx, args) =>
     await ctx.db.insert("documents", {
       title: args.title,
@@ -191,10 +199,11 @@ export const saveDocument = internalMutation({
     }),
 });
 
-export const getDocumentById = internalQuery({
+export const internalGetDocumentById = internalQuery({
   args: {
     documentId: v.id("documents"),
   },
+  returns: v.union(documentValidator, v.null()),
   handler: async (ctx, args) => await ctx.db.get(args.documentId),
 });
 
@@ -203,6 +212,7 @@ export const deleteDocumentsAfterTimestamp = internalMutation({
     documentId: v.id("documents"),
     timestamp: v.number(),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const document = await ctx.db.get(args.documentId);
 
@@ -242,7 +252,12 @@ export const saveSuggestions = internalMutation({
       })
     ),
   },
+  returns: v.array(v.id("suggestions")),
   handler: async (ctx, args) => {
+    if (args.suggestions.length > 100) {
+      throw new Error("Cannot save more than 100 suggestions at once");
+    }
+
     const insertedIds: Id<"suggestions">[] = [];
 
     for (const suggestion of args.suggestions) {
@@ -253,10 +268,11 @@ export const saveSuggestions = internalMutation({
   },
 });
 
-export const getSuggestionsByDocumentId = internalQuery({
+export const internalGetSuggestionsByDocumentId = internalQuery({
   args: {
     documentId: v.id("documents"),
   },
+  returns: v.array(suggestionValidator),
   handler: async (ctx, args) =>
     await ctx.db
       .query("suggestions")

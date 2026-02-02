@@ -122,20 +122,42 @@ export async function POST(request: Request) {
       country,
     };
 
-    await fetchMutation(
-      api.messages.saveMessages,
-      {
-        messages: [
-          {
-            chatId,
-            role: "user",
-            parts: message.parts,
-            attachments: [],
-          },
-        ],
-      },
-      { token }
-    );
+    const filteredUserParts = (message.parts ?? [])
+      .filter((part) => {
+        if (part.type === "text") {
+          return part.text?.trim().length > 0;
+        }
+        if (part.type === "reasoning") {
+          return part.text?.trim().length > 0;
+        }
+        return false;
+      })
+      .map((part) => {
+        if (part.type === "text") {
+          return { type: "text" as const, text: part.text };
+        }
+        if (part.type === "reasoning") {
+          return { type: "reasoning" as const, text: part.text };
+        }
+        return part;
+      });
+
+    if (filteredUserParts.length > 0) {
+      await fetchMutation(
+        api.messages.saveMessages,
+        {
+          messages: [
+            {
+              chatId,
+              role: "user",
+              parts: filteredUserParts,
+              attachments: [],
+            },
+          ],
+        },
+        { token }
+      );
+    }
 
     const streamId = uuidv4();
     await fetchMutation(
