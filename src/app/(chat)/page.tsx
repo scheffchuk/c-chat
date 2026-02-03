@@ -20,6 +20,7 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Suggestion } from "@/components/ai-elements/suggestion";
 import Greeting from "@/components/greeting";
+import { useHoverSidebar } from "@/components/hover-sidebar-context";
 import { ConnectedModelSelector } from "@/components/model-selector";
 import { PreviewAttachment } from "@/components/preview-attachment";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ function PageContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
   const selectedModelId = useModelStore((state) => state.selectedModelId);
+  const { isCollapsed } = useHoverSidebar();
 
   // Handle ?query= param: create chat and navigate
   useEffect(() => {
@@ -69,12 +71,19 @@ function PageContent() {
   }
 
   return (
-    <div className="overscroll-behavior-contain flex h-full min-w-0 touch-pan-y flex-col">
+    <div className="overscroll-behavior-contain flex h-full min-w-0 touch-pan-y flex-col items-center justify-center">
       <div className="flex flex-1 flex-col items-center justify-center">
         <Greeting />
       </div>
       <Authenticated>
-        <div className="mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
+        <div
+          className={
+            "w-full gap-2 border-t-0 bg-background px-2 pb-3 transition-all duration-150 ease-in-out md:px-4 md:pb-4" +
+            (isCollapsed
+              ? "mx-auto max-w-4xl"
+              : "mx-auto max-w-3xl lg:max-w-4xl")
+          }
+        >
           <PromptInputProvider>
             <NewChatInput isPending={isPending} onSubmit={handleSubmit} />
           </PromptInputProvider>

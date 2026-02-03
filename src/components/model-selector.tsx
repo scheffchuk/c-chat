@@ -62,7 +62,7 @@ function ProviderLogo({
   return (
     <Image
       alt={providerId}
-      className={cn("size-6 rounded", className)}
+      className={cn("size-6 rounded dark:invert", className)}
       height={24}
       onError={() => setHasError(true)}
       src={`https://models.dev/logos/${logoId}.svg`}
@@ -268,8 +268,6 @@ export function ModelSelector({
   }, [filteredModels]);
 
   useEffect(() => {
-    const resetKey = `${deferredQuery}-${selectedProvider ?? "all"}-${showFavoritesOnly}`;
-    void resetKey;
     setHighlightedIndex(0);
   }, [deferredQuery, selectedProvider, showFavoritesOnly]);
 
@@ -437,15 +435,13 @@ export function ModelSelector({
         aria-haspopup="listbox"
         aria-label="Select model"
         className={cn(
-          "group flex items-center gap-1.5 md:gap-2",
-          "h-10 rounded-xl px-3 md:h-9 md:px-3.5",
-          "text-muted-foreground text-sm",
-          "bg-muted/40 hover:bg-muted/70 hover:text-foreground",
-          "border border-border/40 hover:border-border/60",
-          "shadow-black/5 shadow-sm",
-          "transition-all duration-200 ease-out",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          open && "border-border/60 bg-muted/70 text-foreground",
+          "group inline-flex h-9 items-center justify-center gap-2",
+          "rounded-md px-3 font-medium text-sm",
+          "text-muted-foreground",
+          "hover:bg-accent hover:text-accent-foreground",
+          "outline-none transition-all",
+          "disabled:pointer-events-none disabled:opacity-50",
+          open && "bg-accent text-accent-foreground",
           className
         )}
         disabled={disabled}
@@ -463,7 +459,7 @@ export function ModelSelector({
         )}
         <ChevronDown
           className={cn(
-            "size-4 transition-transform duration-200",
+            "size-4 transition-transform duration-150",
             open && "rotate-180"
           )}
         />
@@ -476,7 +472,7 @@ export function ModelSelector({
             <>
               <button
                 aria-label="Close model selector"
-                className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+                className="fixed inset-0 z-40 bg-black/50"
                 onClick={handleClose}
                 type="button"
               />
