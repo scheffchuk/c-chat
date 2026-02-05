@@ -7,11 +7,11 @@ import { useWindowSize } from "usehooks-ts";
 import { useHoverSidebar } from "./hover-sidebar-context";
 import { Button } from "./ui/button";
 
-interface Props {
+type Props = {
   chatId: string;
   selectedVisibilityType: "private" | "public";
   isReadonly: boolean;
-}
+};
 
 function PureChatHeader({ chatId, selectedVisibilityType, isReadonly }: Props) {
   const router = useRouter();

@@ -1,25 +1,10 @@
 "use client";
 
-import { useAuthActions } from "@convex-dev/auth/react";
-import {
-  ClockIcon,
-  LogOutIcon,
-  PlusIcon,
-  SearchIcon,
-  UserIcon,
-} from "lucide-react";
+import { ClockIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
-import { useAuth } from "@/lib/auth-client";
 import { useHoverSidebar } from "./hover-sidebar-context";
 import { ThemeToggle } from "./theme-toggle";
-import { Button } from "./ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -30,10 +15,8 @@ import {
 
 export function AppSidebar() {
   const router = useRouter();
-  const { signOut } = useAuthActions();
   const { isCollapsed, isMobile, openMobile, setOpenMobile } =
     useHoverSidebar();
-  const { user } = useAuth();
 
   const sidebarContent = (
     <>
@@ -98,41 +81,6 @@ export function AppSidebar() {
           ))}
         </div>
       </nav>
-
-      {/* Bottom Actions */}
-      <div className="flex items-center justify-end border-border border-t py-3">
-        {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="flex items-center gap-2 px-2" variant="ghost">
-                <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  {user.image ? (
-                    <img
-                      alt={user.name ?? "User"}
-                      className="size-8 rounded-full"
-                      height={32}
-                      src={user.image}
-                      width={32}
-                    />
-                  ) : (
-                    <UserIcon size={16} />
-                  )}
-                </div>
-                <span className="text-sm">{user.name ?? user.email}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => signOut()}
-              >
-                <LogOutIcon className="mr-2" size={14} />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
     </>
   );
 

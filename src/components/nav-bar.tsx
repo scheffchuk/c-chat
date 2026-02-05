@@ -1,13 +1,20 @@
 "use client";
 
+import { LogOutIcon, UserIcon } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-client";
+import { useAuth, useAuthActions } from "@/lib/auth-client";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 export default function NavBar() {
-  const { isLoading, isAuthenticated } = useAuth();
-
+  const { isLoading, isAuthenticated, user } = useAuth();
+  const { signOut } = useAuthActions();
   return (
     <nav className="hidden flex-row items-center justify-between gap-4 px-2 pt-4 pb-2 md:flex">
       <div className="ml-2 flex items-center gap-4">
@@ -27,6 +34,36 @@ export default function NavBar() {
           >
             <Link href="/signin">Sign In</Link>
           </Button>
+        )}
+        {user && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="flex items-center gap-2 px-2" variant="ghost">
+                <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  {user.image ? (
+                    <img
+                      alt={user.name ?? "User"}
+                      className="size-8 rounded-full"
+                      height={32}
+                      src={user.image}
+                      width={32}
+                    />
+                  ) : (
+                    <UserIcon size={16} />
+                  )}
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => signOut()}
+              >
+                <LogOutIcon className="mr-2" size={14} />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
         <ThemeToggle />
       </div>
