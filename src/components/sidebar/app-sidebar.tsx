@@ -1,9 +1,20 @@
 "use client";
 
-import { useConvexAuth, usePaginatedQuery } from "convex/react";
-import { ClockIcon, PlusIcon, SearchIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useConvexAuth, useMutation, usePaginatedQuery } from "convex/react";
+import { ClockIcon, PlusIcon, SearchIcon, Trash2 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Sheet,
   SheetContent,
@@ -13,6 +24,7 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { useSidebar } from "./sidebar-provider";
 
 function ChatHistorySkeleton() {
@@ -44,18 +56,65 @@ function ChatHistoryList({
   status: "CanLoadMore" | "LoadingMore" | "Exhausted" | "LoadingFirstPage";
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const deleteChat = useMutation(api.chats.deleteChat);
+  const [chatToDelete, setChatToDelete] = useState<{
+    _id: string;
+    title: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!chatToDelete) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteChat({ id: chatToDelete._id as Id<"chats"> });
+      toast.success("Chat deleted");
+
+      // If we're currently viewing the deleted chat, redirect to home
+      if (pathname === `/chat/${chatToDelete._id}`) {
+        router.push("/");
+      }
+    } catch (error) {
+      toast.error("Failed to delete chat");
+      console.error(error);
+    } finally {
+      setIsDeleting(false);
+      setChatToDelete(null);
+    }
+  };
+
   return (
     <>
       <div className="space-y-1">
         {chats?.map((chat) => (
-          <button
-            className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition-colors duration-150 hover:bg-accent"
+          <div
+            className="group relative flex w-full items-center rounded-lg transition-colors duration-150 hover:bg-accent"
             key={chat._id}
-            onClick={() => router.push(`/chat/${chat._id}`)}
-            type="button"
           >
-            <span className="truncate text-muted-foreground">{chat.title}</span>
-          </button>
+            <button
+              className="flex flex-1 items-center justify-start px-3 py-2 text-left text-xs"
+              onClick={() => router.push(`/chat/${chat._id}`)}
+              type="button"
+            >
+              <span className="truncate text-muted-foreground">
+                {chat.title}
+              </span>
+            </button>
+            <button
+              className="absolute right-2 flex h-6 w-6 items-center justify-center rounded-md opacity-0 transition-opacity hover:bg-destructive hover:text-white group-hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                setChatToDelete(chat);
+              }}
+              type="button"
+            >
+              <Trash2 size={12} />
+            </button>
+          </div>
         ))}
       </div>
 
@@ -73,6 +132,35 @@ function ChatHistoryList({
       {status === "LoadingMore" && (
         <div className="py-2 text-muted-foreground text-xs">Loading...</div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog onOpenChange={() => setChatToDelete(null)} open={!!chatToDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Chat</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this chat? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              disabled={isDeleting}
+              onClick={() => setChatToDelete(null)}
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={isDeleting}
+              onClick={handleDelete}
+              variant="destructive"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
