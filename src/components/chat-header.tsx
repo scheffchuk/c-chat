@@ -4,7 +4,7 @@ import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { memo } from "react";
 import { useWindowSize } from "usehooks-ts";
-import { useHoverSidebar } from "./hover-sidebar-context";
+import { useSidebar } from "./sidebar";
 import { Button } from "./ui/button";
 
 type Props = {
@@ -15,13 +15,13 @@ type Props = {
 
 function PureChatHeader({ chatId, selectedVisibilityType, isReadonly }: Props) {
   const router = useRouter();
-  const { isCollapsed } = useHoverSidebar();
+  const { isOpen } = useSidebar();
 
   const { width: windowWidth } = useWindowSize();
 
   return (
     <header className="sticky top-0 items-center gap-2 space-x-2 bg-background px-2 py-1.5 md:px-4">
-      {(isCollapsed || windowWidth < 768) && (
+      {(!isOpen || windowWidth < 768) && (
         <Button
           className="order-2 ml-auto h-8 px-2 md:order-1 md:ml-0 md:h-fit md:px-2"
           onClick={() => {

@@ -66,11 +66,6 @@ export const listChatsForUser = query({
   args: {
     paginationOpts: paginationOptsValidator,
   },
-  returns: v.object({
-    page: v.array(chatValidator),
-    isDone: v.boolean(),
-    continueCursor: v.union(v.string(), v.null()),
-  }),
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) {

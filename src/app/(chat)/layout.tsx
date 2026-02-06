@@ -1,31 +1,31 @@
 import type React from "react";
 import { Toaster } from "sonner";
-import { AppSidebar } from "@/components/app-sidebar";
-import { HoverSidebarProvider } from "@/components/hover-sidebar-context";
 import NavBar from "@/components/nav-bar";
-import { SidebarToggle } from "@/components/sidebar-toggle";
+import {
+  AppSidebar,
+  SidebarProvider,
+  SidebarToggle,
+} from "@/components/sidebar";
 import { DataStreamProvider } from "@/providers/data-stream-provider";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <DataStreamProvider>
-      <HoverSidebarProvider>
-        <main className="relative flex h-screen max-h-screen flex-col overflow-y-hidden bg-background transition-all duration-100 ease-in-out">
-          <div className="flex h-full w-full flex-col">
-            <NavBar />
-            <div className="group flex min-h-0 w-full flex-1 flex-col gap-4 p-2 transition-all duration-100 ease-in-out md:flex-row">
-              <AppSidebar />
-              <div className="flex h-full w-full flex-col rounded-xl border border-foreground/30 bg-background transition-all duration-100 ease-in-out">
-                <div className="sidebar-icon-trigger max-w-max p-2">
-                  <SidebarToggle className="cursor-pointer p-3 hover:bg-transparent hover:text-primary/90" />
-                </div>
-                {children}
+      <SidebarProvider>
+        <div className="flex h-screen max-h-screen flex-col overflow-hidden bg-background">
+          <NavBar />
+          <div className="flex flex-1 overflow-hidden">
+            <AppSidebar />
+            <main className="relative m-2 flex flex-1 flex-col overflow-hidden rounded-xl border border-foreground/30 bg-background">
+              <div className="flex items-center p-2">
+                <SidebarToggle className="cursor-pointer p-3 hover:bg-transparent hover:text-primary/90" />
               </div>
-            </div>
+              <div className="flex-1 overflow-hidden">{children}</div>
+            </main>
           </div>
-        </main>
+        </div>
         <Toaster />
-      </HoverSidebarProvider>
+      </SidebarProvider>
     </DataStreamProvider>
   );
 }

@@ -16,6 +16,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { Messages } from "./messages";
 import { MultimodalInput } from "./multimodal-input";
+import { useSidebar } from "./sidebar";
 
 export default function Chat({
   id,
@@ -33,6 +34,7 @@ export default function Chat({
   initialLastContext?: AppUsage;
 }) {
   const { setDataStream } = useDataStream();
+  const { isOpen } = useSidebar();
   const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
   const selectedModelId = useModelStore((state) => state.selectedModelId);
   const setSelectedModel = useModelStore((state) => state.setSelectedModel);
@@ -138,7 +140,7 @@ export default function Chat({
   }, [initialMessages.length, sendMessage]);
 
   return (
-    <div className="overscroll-behavior-contain flex h-full min-w-0 touch-pan-y flex-col">
+    <div className="overscroll-behavior-contain relative flex h-full min-w-0 touch-pan-y flex-col">
       <Messages
         isArtifactVisible={false}
         isReadOnly={isReadonly}
@@ -149,7 +151,9 @@ export default function Chat({
         status={status}
       />
       <Authenticated>
-        <div className="fixed right-0 bottom-0 left-0 z-20 mx-auto w-full max-w-4xl gap-2 border-t-0 bg-background/95 px-2 pb-4 backdrop-blur-sm md:px-4 md:pb-6">
+        <div
+          className={`absolute right-0 bottom-0 left-0 z-20 mx-auto w-full ${isOpen ? "max-w-3xl lg:max-w-4xl" : "max-w-4xl"} gap-2 border-t-0 bg-background/95 px-2 pb-4 backdrop-blur-sm md:px-4 md:pb-6`}
+        >
           <MultimodalInput
             chatId={id}
             messages={messages}

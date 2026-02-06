@@ -1,37 +1,41 @@
 "use client";
 
 import type { ComponentProps } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useHoverSidebar } from "./hover-sidebar-context";
 import { SidebarIcon } from "./sidebar-icon";
-import { Button } from "./ui/button";
-import { Tooltip, TooltipTrigger } from "./ui/tooltip";
+import { useSidebar } from "./sidebar-provider";
 
 export function SidebarToggle({ className }: ComponentProps<"button">) {
-  const { toggleCollapsed, isCollapsed } = useHoverSidebar();
+  const { toggle, isOpen } = useSidebar();
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
           className={cn(
-            "sidebar-icon-trigger h-8 text-primary hover:text-primary/90 md:h-fit md:px-4",
+            "h-8 text-primary hover:text-primary/90 md:h-fit md:px-4",
             className
           )}
           data-testid="sidebar-toggle-button"
-          onClick={toggleCollapsed}
+          onClick={toggle}
           variant="ghost"
         >
           <SidebarIcon
             className="size-6 text-muted-foreground"
-            isCollapsed={isCollapsed}
+            isCollapsed={!isOpen}
           />
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
       </TooltipTrigger>
-      {/* <TooltipContent align="start" className="hidden md:block">
+      <TooltipContent align="start" className="hidden md:block">
         Toggle Sidebar
-      </TooltipContent> */}
+      </TooltipContent>
     </Tooltip>
   );
 }
