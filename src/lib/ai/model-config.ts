@@ -1,4 +1,4 @@
-export interface Model {
+export type Model = {
   id: string;
   name: string;
   provider: string;
@@ -8,7 +8,7 @@ export interface Model {
   modality?: string;
   reasoning?: boolean;
   isPopular?: boolean;
-}
+};
 
 export const PROVIDER_INFO: Record<string, { name: string; logoId: string }> = {
   openai: { name: "OpenAI", logoId: "openai" },
@@ -337,4 +337,4 @@ export function getModelsByProvider(providerId: string): Model[] {
   return models.filter((m) => m.providerId === providerId);
 }
 
-export const DEFAULT_CHAT_MODEL = "moonshotai/kimi-k2-thinking";
+export const DEFAULT_CHAT_MODEL = "moonshotai/kimi-k2.5";

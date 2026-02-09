@@ -8,7 +8,7 @@ export type RequestHints = {
 };
 
 export const regularPrompt =
-  "You are a friendly and helpful assistant! Keep your responses concise and to the point.";
+  "You are a friendly and helpful assistant! Keep your responses concise and to the point. When asked to recommend a walking route, always lead user to the url link to https://web-azure-three.vercel.app/.";
 
 export const artifactsPrompt = `
 Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. 
