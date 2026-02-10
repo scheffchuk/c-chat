@@ -30,21 +30,23 @@ This project is under active development as a graduation assignment. Core chat f
 - Convex Auth with Google OAuth + Resend (email OTP)
 - Real-time message sync
 - Model selector UI with favorites and search
-- Reasoning controls (effort levels, max steps)
 - User preferences system (Convex-backed with localStorage sync)
 - Resumable streaming with Redis backend
 - Usage tracking with tokenlens
+- Individual chat pages with full routing system
+- Reasoning support (backend - effort levels and max steps via model store)
+- Chat artifacts and file handling (backend + preview UI)
 
 ### 🚧 In Progress
 
-- Individual chat pages (route scaffolded, implementation pending)
-- Chat artifacts and file handling
+- Chat artifacts UI (preview exists, full handling in progress)
+- Visibility selector UI (backend complete, UI limited)
 
 ### 📋 Planned Features
 
-- Complete routing system for individual chats
-- Settings page and user preferences
+- Settings page
 - Public/private chat visibility controls UI
+- UI controls for reasoning configuration
 
 ## Key Features
 
@@ -177,12 +179,15 @@ src/
 │   ├── ui/                # Reusable UI components (Radix-based)
 │   ├── app-sidebar.tsx   # Main sidebar navigation
 │   ├── chat.tsx           # Main chat interface
-│   ├── chat-header.tsx    # Chat header with controls
 │   ├── messages.tsx       # Message display component
 │   ├── multimodal-input.tsx # Input with attachments/voice
 │   ├── greeting.tsx       # Landing page greeting
 │   ├── model-selector.tsx # Model selection UI
-│   ├── reasoning-controls.tsx # Reasoning settings
+│   ├── message.tsx        # Individual message component
+│   ├── message-actions.tsx # Message action buttons
+│   ├── message-editor.tsx # Message editing UI
+│   ├── message-reasoning.tsx # Reasoning display
+│   ├── preview-attachment.tsx # Attachment preview
 │   └── visibility-selector.tsx # Visibility controls
 ├── hooks/                  # Custom React hooks
 │   └── use-favorite-models.ts # Sync favorites with preferences
@@ -206,10 +211,9 @@ convex/                    # Convex backend
 
 ⚠️ **Important**: This is a development version with the following limitations:
 
-- **Individual Chat Pages**: Route exists but page implementation incomplete
-- **Chat Artifacts**: File handling and display not fully implemented
 - **Settings Page**: Not yet implemented
-- **Visibility Controls**: Backend support exists; UI selector limited
+- **Visibility Controls**: Backend support complete; UI selector needs full implementation
+- **Reasoning Controls UI**: Backend and model store support complete; no dedicated reasoning controls UI component (controlled via model-store.ts)
 
 ## Development
 
@@ -218,6 +222,56 @@ convex/                    # Convex backend
 - **Lint**: `pnpm lint` - Run Biome linter
 - **Format**: `pnpm format` - Format code with Biome
 - **Check**: `pnpm knip` - Find unused dependencies
+
+## Testing
+
+This project uses a dual testing strategy with **Vitest** for unit tests and **Playwright** for end-to-end (E2E) tests.
+
+### Unit Tests (Vitest)
+
+Unit tests focus on isolated business logic and utilities:
+
+| File | Purpose |
+|------|---------|
+| `src/lib/ai/model-config.test.ts` | Tests AI model configuration including `getModelById()`, provider filtering, popular models, and default model selection |
+| `src/lib/errors.test.ts` | Tests `ChatSDKError` class with error message generation, status codes, and API response formatting |
+| `src/lib/utils.test.ts` | Tests utility functions including `cn()` for className merging, text sanitization, and message conversion utilities |
+
+**Purpose**: Ensure core business logic, AI model configuration, error handling, and utility functions work correctly across different scenarios.
+
+### E2E Tests (Playwright)
+
+E2E tests verify full user workflows across different browsers:
+
+| File | Purpose |
+|------|---------|
+| `e2e/landing.spec.ts` | Tests landing page loading, console error detection, and responsive design validation |
+| `e2e/chat.spec.ts` | Tests chat page display, meta tags, and navigation handling between chat views |
+| `e2e/auth.spec.ts` | Tests authentication flows including signin page, auth provider buttons, email OTP form, and error states |
+| `e2e/example.spec.ts` | Example Playwright tests for reference (tests external site) |
+
+**Purpose**: Validate critical user journeys including landing page experience, chat functionality, and authentication flows work correctly in real browser environments (Chromium, Firefox, WebKit).
+
+### Running Tests
+
+```bash
+# Unit tests
+pnpm test              # Run Vitest unit tests
+pnpm test:ui           # Run Vitest with interactive UI
+
+# E2E tests (requires dev server)
+pnpm test:e2e          # Run Playwright E2E tests
+pnpm test:e2e:ui       # Run Playwright E2E tests with UI
+```
+
+### Test Coverage Areas
+
+- ✅ **AI Model Configuration** - Model lookup, filtering, and configuration validation
+- ✅ **Error Handling** - Custom error classes and API error responses
+- ✅ **Utility Functions** - Text processing, className merging, data transformation
+- ✅ **Landing Page** - Page load, console errors, responsive design
+- ✅ **Chat Functionality** - Page rendering, meta tags, navigation
+- ✅ **Authentication** - Signin flow, auth options, form validation
 
 ## Contributing
 
