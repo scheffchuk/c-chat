@@ -8,45 +8,29 @@
 
 ## 開発状況
 
-**🚧 現在アクティブに開発中**
+**コア機能は完成。** AI Gateway、Convex バックエンド、Convex Auth によるマルチモデルチャットが動作。残作業：設定ページ、可視性 UI、推論コントロール UI、アーティファクトパネル。
 
-このプロジェクトは卒業課題としてアクティブに開発されています。コアチャット機能は動作しており、AI モデル統合、メッセージ永続化、認証が機能しています。UI の改善と追加機能は進行中です。
+### 完了済み
 
-### ✅ 完了した機能
+- レスポンシブ UI、サイドバー、テーマ切り替え（ライト/ダーク）
+- マルチモーダル入力（テキスト、音声、ファイル添付）
+- マルチモデルセレクター（お気に入り、検索、プロバイダーロゴ）
+- AI Gateway ストリーミング、再開可能ストリーム（Redis オプション）
+- Convex バックエンド：chats、messages、userPreferences、streams、documents
+- Convex Auth：Google OAuth + Resend メール OTP
+- メッセージアクション（コピー、編集）、推論表示（折りたたみ）
+- 使用状況トラッキング（tokenlens）、チャットごとのコスト表示
+- 推論パラメータ（バックエンド）：努力レベル・最大ステップをモデルストアから渡す
 
-- サイドバーナビゲーションを備えたモダンなレスポンシブ UI
-- マルチモーダル入力インターフェース（テキスト、音声、ファイル添付）
-- テーマ切り替えサポート（ライト/ダークモード）
-- バックエンド統合済みマルチモデルセレクター UI
-- チャットインターフェースレイアウトとコンポーネント
-- グリーティングコンポーネント付きホームページ
-- サインイン/サインアウト機能（Convex Auth 統合）
-- AI Gateway API エンドポイントとストリーミングサポート
-- メッセージ永続化とストレージ（Convex バックエンド）
-- レンダリング付きメッセージ表示コンポーネント
-- メッセージアクション（コピー、編集）
-- Convex バックエンドスキーマ（Users、Messages、Chats、UserPreferences、Streams）
-- Convex クライアントと React の統合
-- Convex Auth と Google OAuth + Resend（メール OTP）の統合
-- リアルタイムメッセージ同期
-- お気に入りの検索機能を備えたモデルセレクター UI
-- ユーザープリファレンスシステム（Convex バックエンド + localStorage 同期）
-- Redis バックエンドを使用した再開可能なストリーミング
-- tokenlens を使用した使用状況トラッキング
-- 完全なルーティングシステムを備えた個別チャットページ
-- 推論サポート（バックエンド - モデルストアによる努力レベルと最大ステップ数）
-- チャットアーティファクトとファイル処理（バックエンド + プレビュー UI）
+### 進行中
 
-### 🚧 進行中
+- チャットアーティファクト（バックエンド + プロンプト準備済み；UI パネル未接続）
+- 可視性セレクター（スキーマ + コンポーネント存在；ミューテーション/フック未接続）
 
-- チャットアーティファクト UI（プレビューは存在、完全な処理は進行中）
-- 可視性セレクター UI（バックエンド完了、UI は限定的）
-
-### 📋 計画中の機能
+### 計画中
 
 - 設定ページ
-- パブリック/プライベートチャット可視性コントロール UI
-- 推論設定用 UI コントロール
+- 推論コントロール UI（努力レベル、最大ステップ - ストア存在、UI なし）
 
 ## 主な機能
 
@@ -82,15 +66,13 @@
 
 ### バックエンド・サービス
 
-- **Convex 1.28** - リアルタイムバックエンドプラットフォーム（スキーマとクライアント統合済み）
-- **@convex-dev/auth** 0.0.90 - 認証システム（Convex Auth）
-- **@ai-sdk/gateway** 2.0.12 - モデル統合用の AI Gateway
-- **@ai-sdk/openai** 2.0.65 - OpenAI プロバイダー
-- **@ai-sdk/anthropic** 2.0.44 - Anthropic プロバイダー
-- **@ai-sdk/react** 2.0.76 - React 統合
-- **resumable-stream** 2.2.8 - ストリーミングチャット応答
-- **tokenlens** 1.3.1 - 使用状況トラッキングとコスト推定
-- **@upstash/redis** 1.35.7 - 再開可能なストリーミング用の Redis 統合
+- **Convex 1.28** - リアルタイムバックエンド（chats、messages、userPreferences、auth）
+- **@convex-dev/auth** 0.0.90 - Google OAuth + Resend メール OTP
+- **@ai-sdk/gateway** 2.0.12 - AI Gateway（OpenAI、Anthropic 等）
+- **@ai-sdk/react** 2.0.76 - useChat、ストリーミング
+- **resumable-stream** 2.2.8 - 再開可能ストリーミング
+- **tokenlens** 1.3.1 - 使用状況トラッキング、コスト推定
+- **@upstash/redis** 1.35.7 - 再開可能ストリーム用オプション Redis
 
 ### ユーティリティ
 
@@ -109,55 +91,26 @@
 
 - **Vercel** - ホスティングとデプロイメントプラットフォーム
 
-## セットアップ
+## セットアップ（Getting Started）
 
-### 前提条件
-
-- Node.js 18 以上
-- pnpm
-
-### 環境変数
-
-以下の必須変数を含む`.env.local`ファイルを作成：
-
-```bash
-# Convex バックエンド
-NEXT_PUBLIC_CONVEX_URL=<your-convex-deployment-url>
-CONVEX_DEPLOYMENT=<your-convex-dev-deployment-id>
-NEXT_PUBLIC_CONVEX_SITE_URL=<your-convex-site-url>
-NEXT_PUBLIC_SITE_URL=<your-site-url>
-
-# Convex Auth
-AI_GATEWAY_API_KEY=<your-ai-gateway-api-key>
-AUTH_EMAIL_FROM=<your-email-from-address>
-```
-
-**注意**: Convex は`npx convex dev`でローカル実行するか、Convex Cloud デプロイメント URL を使用できます。
-
-### インストール
-
-1. リポジトリをクローン
+**前提条件:** Node.js 18 以上、pnpm
 
 ```bash
 git clone <repository-url>
 cd c-chat
-```
-
-2. 依存関係をインストール
-
-```bash
 pnpm install
 ```
 
-3. 上記の通り環境変数を設定
-
-4. 開発サーバーを起動
+`.env.example`を`.env.local`にコピーし、必須項目を入力後：
 
 ```bash
-pnpm dev
+npx convex dev    # ターミナル 1: Convex バックエンド
+pnpm dev          # ターミナル 2: Next.js
 ```
 
-5. ブラウザで [http://localhost:3000](http://localhost:3000) を開く
+[http://localhost:3000](http://localhost:3000) を開く。Google またはメール OTP でサインイン。
+
+必須の環境変数: `NEXT_PUBLIC_CONVEX_URL`, `CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `AI_GATEWAY_API_KEY`, `AUTH_EMAIL_FROM`。詳細は`.env.example`を参照。
 
 ## プロジェクト構造
 
@@ -175,9 +128,9 @@ src/
 │   ├── page.tsx           # ホームページリダイレクト
 │   └── globals.css        # グローバルスタイル
 ├── components/             # React コンポーネント
-│   ├── ai-elements/       # AI 専用 UI コンポーネント
-│   ├── ui/               # 再利用可能な UI コンポーネント（Radix ベース）
-│   ├── app-sidebar.tsx   # メインサイドバーナビゲーション
+│   ├── ai-elements/       # AI 専用 UI（推論、コンテキスト、サジェスト）
+│   ├── sidebar/           # app-sidebar、sidebar-provider 等
+│   ├── ui/                # Radix プリミティブ
 │   ├── chat.tsx          # メインチャットインターフェース
 │   ├── messages.tsx      # メッセージ表示コンポーネント
 │   ├── multimodal-input.tsx # 添付ファイル/音声付き入力
@@ -198,22 +151,21 @@ src/
     ├── convex-client-provider.tsx  # Convex React クライアント
     └── theme-provider.tsx          # テーマコンテキスト
 convex/                    # Convex バックエンド
-├── _generated/           # 自動生成 API & 型
-├── schema.ts             # データベーススキーマ（users、chats、messages、userPreferences、streams）
-├── chats.ts              # チャットクエリ & ミューテーション
-├── messages.ts          # メッセージクエリ & ミューテーション
-├── users.ts             # ユーザークエリ & ミューテーション
-├── auth.config.ts       # Convex Auth 設定
-└── preferences.ts       # ユーザープリファレンスクエリ & ミューテーション
+├── _generated/            # 自動生成 API & 型
+├── schema.ts              # データベーススキーマ
+├── chats.ts               # チャット CRUD、一覧
+├── messages.ts            # メッセージクエリ & ミューテーション
+├── userPreferences.ts    # ユーザープリファレンス
+├── auth.config.ts         # Convex Auth 設定
+├── auth.ts                # 認証ヘルパー
+└── files.ts               # ファイルストレージ
 ```
 
 ## 現在の制限事項
 
-⚠️ **重要**: これは開発版で、以下の制限があります：
-
-- **設定ページ**: まだ実装されていない
-- **可視性コントロール**: バックエンドサポートは完了しているが、UI セレクターは完全な実装が必要
-- **推論コントロール UI**: バックエンドとモデルストアサポートは完了しているが、専用の推論コントロール UI コンポーネントはない（model-store.ts 経由で制御）
+- **設定ページ**: 未実装
+- **可視性セレクター**: コンポーネント存在；Convex ミューテーション・フック未接続
+- **推論コントロール**: ストア + API で effort/maxSteps 対応；変更用 UI なし（デフォルト使用）
 
 ## 開発
 
@@ -275,4 +227,4 @@ pnpm test:e2e:ui       # UIでPlaywright E2Eテストを実行
 
 ## 貢献
 
-このプロジェクトは現在卒業課題としてアクティブに開発されています。フロントエンド UI はほぼ完成しており、次のフェーズではバックエンド統合と AI モデル接続が含まれます。
+コアチャット、バックエンド、認証は本番利用可能。設定、可視性 UI、推論コントロール、アーティファクトパネルへの貢献を歓迎します。

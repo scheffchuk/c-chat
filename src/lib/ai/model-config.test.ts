@@ -209,6 +209,6 @@ describe("DEFAULT_CHAT_MODEL", () => {
   });
 
   it("should be the expected default model", () => {
-    expect(DEFAULT_CHAT_MODEL).toBe("moonshotai/kimi-k2-thinking");
+    expect(DEFAULT_CHAT_MODEL).toBe("moonshotai/kimi-k2.5");
   });
 });

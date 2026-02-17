@@ -8,45 +8,29 @@ While the demand for multi-model AI chat interfaces is high, existing solutions 
 
 ## Development Status
 
-**🚧 Currently in Active Development**
+**Core functionality complete.** Full multi-model chat with AI Gateway, Convex backend, and Convex Auth. Remaining work: settings, visibility UI, reasoning controls UI, artifact panel.
 
-This project is under active development as a graduation assignment. Core chat functionality is operational with AI model integration, message persistence, and authentication working. UI enhancements and additional features are in progress.
+### Completed
 
-### ✅ Completed Features
+- Responsive UI with sidebar, theme switching (light/dark)
+- Multimodal input (text, voice, file attachments)
+- Multi-model selector with favorites, search, provider logos
+- AI Gateway streaming, resumable streams (Redis optional)
+- Convex backend: chats, messages, userPreferences, streams, documents
+- Convex Auth: Google OAuth + Resend email OTP
+- Message actions (copy, edit), reasoning display (collapsible)
+- Usage tracking (tokenlens), per-chat cost display
+- Reasoning params in backend (effort, max steps) – passed from model store
 
-- Modern responsive UI with sidebar navigation
-- Multimodal input interface (text, voice, file attachments)
-- Theme switching support (light/dark mode)
-- Multi-model selector UI with backend integration
-- Chat interface layout and components
-- Homepage with greeting component
-- Sign in/Sign out functionality (Convex Auth integration)
-- AI Gateway API endpoint with streaming support
-- Message persistence and storage (Convex backend)
-- Message display component with rendering
-- Message actions (copy, edit)
-- Convex backend schema (Users, Messages, Chats, UserPreferences, Streams)
-- Convex client integration with React
-- Convex Auth with Google OAuth + Resend (email OTP)
-- Real-time message sync
-- Model selector UI with favorites and search
-- User preferences system (Convex-backed with localStorage sync)
-- Resumable streaming with Redis backend
-- Usage tracking with tokenlens
-- Individual chat pages with full routing system
-- Reasoning support (backend - effort levels and max steps via model store)
-- Chat artifacts and file handling (backend + preview UI)
+### In Progress
 
-### 🚧 In Progress
+- Chat artifacts (backend + prompt ready; UI panel not wired)
+- Visibility selector (schema + component; mutation/hook not connected)
 
-- Chat artifacts UI (preview exists, full handling in progress)
-- Visibility selector UI (backend complete, UI limited)
-
-### 📋 Planned Features
+### Planned
 
 - Settings page
-- Public/private chat visibility controls UI
-- UI controls for reasoning configuration
+- Reasoning controls UI (effort, max steps – store exists, no UI)
 
 ## Key Features
 
@@ -82,15 +66,13 @@ This project is under active development as a graduation assignment. Core chat f
 
 ### Backend & Services
 
-- **Convex 1.28** - Real-time backend platform (schema and client integrated)
-- **@convex-dev/auth** 0.0.90 - Authentication system (Convex Auth)
-- **@ai-sdk/gateway** 2.0.12 - AI Gateway for model integration
-- **@ai-sdk/openai** 2.0.65 - OpenAI provider
-- **@ai-sdk/anthropic** 2.0.44 - Anthropic provider
-- **@ai-sdk/react** 2.0.76 - React integration
-- **resumable-stream** 2.2.8 - Streaming chat responses
-- **tokenlens** 1.3.1 - Usage tracking and cost estimation
-- **@upstash/redis** 1.35.7 - Redis integration for resumable streaming
+- **Convex 1.28** - Real-time backend (chats, messages, userPreferences, auth)
+- **@convex-dev/auth** 0.0.90 - Google OAuth + Resend email OTP
+- **@ai-sdk/gateway** 2.0.12 - AI Gateway (OpenAI, Anthropic, etc.)
+- **@ai-sdk/react** 2.0.76 - useChat, streaming
+- **resumable-stream** 2.2.8 - Resumable streaming
+- **tokenlens** 1.3.1 - Usage tracking, cost estimation
+- **@upstash/redis** 1.35.7 - Optional Redis backend for resumable streams
 
 ### Utilities
 
@@ -111,53 +93,24 @@ This project is under active development as a graduation assignment. Core chat f
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18+
-- pnpm
-
-### Environment Variables
-
-Create a `.env.local` file with the following required variables:
-
-```bash
-# Convex Backend
-NEXT_PUBLIC_CONVEX_URL=<your-convex-deployment-url>
-CONVEX_DEPLOYMENT=<your-convex-dev-deployment-id>
-NEXT_PUBLIC_CONVEX_SITE_URL=<your-convex-site-url>
-NEXT_PUBLIC_SITE_URL=<your-site-url>
-
-# Convex Auth
-AI_GATEWAY_API_KEY=<your-ai-gateway-api-key>
-AUTH_EMAIL_FROM=<your-email-from-address>
-```
-
-**Note**: You can run Convex locally with `npx convex dev` or use a Convex Cloud deployment URL.
-
-### Installation
-
-1. Clone the repository
+**Prerequisites:** Node.js 18+, pnpm
 
 ```bash
 git clone <repository-url>
 cd c-chat
-```
-
-2. Install dependencies
-
-```bash
 pnpm install
 ```
 
-3. Set up environment variables as described above
-
-4. Start the development server
+Copy `.env.example` to `.env.local`, fill in the required values, then:
 
 ```bash
-pnpm dev
+npx convex dev    # terminal 1: Convex backend
+pnpm dev          # terminal 2: Next.js
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+Open [http://localhost:3000](http://localhost:3000). Sign in with Google or email OTP.
+
+Required env vars: `NEXT_PUBLIC_CONVEX_URL`, `CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `AI_GATEWAY_API_KEY`, `AUTH_EMAIL_FROM`. See `.env.example`.
 
 ## Project Structure
 
@@ -175,9 +128,9 @@ src/
 │   ├── page.tsx           # Home page redirect
 │   └── globals.css        # Global styles
 ├── components/             # React components
-│   ├── ai-elements/       # AI-specific UI components
-│   ├── ui/                # Reusable UI components (Radix-based)
-│   ├── app-sidebar.tsx   # Main sidebar navigation
+│   ├── ai-elements/       # AI-specific UI (reasoning, context, suggestions)
+│   ├── sidebar/           # app-sidebar, sidebar-provider, etc.
+│   ├── ui/                # Radix-based primitives
 │   ├── chat.tsx           # Main chat interface
 │   ├── messages.tsx       # Message display component
 │   ├── multimodal-input.tsx # Input with attachments/voice
@@ -198,22 +151,21 @@ src/
     ├── convex-client-provider.tsx  # Convex React client
     └── theme-provider.tsx          # Theme context
 convex/                    # Convex backend
-├── _generated/           # Auto-generated API & types
-├── schema.ts             # Database schema (users, chats, messages, userPreferences, streams)
-├── chats.ts              # Chat queries & mutations
-├── messages.ts           # Message queries & mutations
-├── users.ts              # User queries & mutations
-├── auth.config.ts        # Convex Auth config
-└── preferences.ts        # User preferences queries & mutations
+├── _generated/            # Auto-generated API & types
+├── schema.ts              # Database schema
+├── chats.ts               # Chat CRUD, list
+├── messages.ts            # Message queries & mutations
+├── userPreferences.ts     # User preferences
+├── auth.config.ts         # Convex Auth config
+├── auth.ts                # Auth helpers
+└── files.ts               # File storage
 ```
 
 ## Current Limitations
 
-⚠️ **Important**: This is a development version with the following limitations:
-
-- **Settings Page**: Not yet implemented
-- **Visibility Controls**: Backend support complete; UI selector needs full implementation
-- **Reasoning Controls UI**: Backend and model store support complete; no dedicated reasoning controls UI component (controlled via model-store.ts)
+- **Settings page**: Not implemented
+- **Visibility selector**: Component exists; Convex mutation + hook not wired
+- **Reasoning controls**: Store + API support effort/maxSteps; no UI to change them (defaults used)
 
 ## Development
 
@@ -275,4 +227,4 @@ pnpm test:e2e:ui       # Run Playwright E2E tests with UI
 
 ## Contributing
 
-This project is currently in active development as a graduation assignment. The frontend UI is largely complete, and the next phase involves backend integration and AI model connectivity.
+Core chat, backend, and auth are production-ready. Contributions welcome for settings, visibility UI, reasoning controls, and the artifact panel.

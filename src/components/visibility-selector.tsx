@@ -19,7 +19,7 @@ const visibilities: Array<{
   {
     id: "public",
     label: "Public",
-    description: "Anyone with the linkcan access this chat",
+    description: "Anyone with the link can access this chat",
     icon: <GlobeIcon />,
   },
 ];

@@ -91,10 +91,10 @@ function PageContent() {
 }
 
 const suggestedActions = [
-  "What is AI?",
-  "Explain quantum computing",
-  "How many 's' are in 'strawberry'?",
-  "What is the weather in Tokyo?",
+  "AI(Artificial Intelligence)とは何か?",
+  "丸の内散歩ルートをおすすめしてください。",
+  "strawberryには何個の's'があるか?",
+  "Pythonを使ってFizzBuzz関数を作成してください。",
 ];
 
 function NewChatInput({
