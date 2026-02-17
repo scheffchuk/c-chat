@@ -99,9 +99,19 @@
 git clone <repository-url>
 cd c-chat
 pnpm install
+cp .env.example .env.local
 ```
 
-`.env.example`を`.env.local`にコピーし、必須項目を入力後：
+`.env.local` に値を入力。各変数の取得先：
+
+| 変数 | 取得方法 |
+|------|----------|
+| `NEXT_PUBLIC_CONVEX_URL`, `CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_SITE_URL` | `npx convex dev` を1回実行すると Convex プロジェクトが作成され、これらが `.env.local` に書き込まれる。または [dashboard.convex.dev](https://dashboard.convex.dev) → デプロイメント → Settings からコピー。 |
+| `NEXT_PUBLIC_SITE_URL` | アプリの URL。ローカル開発では `http://localhost:3000`。 |
+| `AI_GATEWAY_API_KEY` | [Vercel ダッシュボード](https://vercel.com) → AI Gateway → API Keys → Create key。 |
+| `AUTH_EMAIL_FROM` | [Resend](https://resend.com) – 検証済み送信元アドレス（例: `noreply@yourdomain.com`）。メール OTP サインインに必要。 |
+
+その後：
 
 ```bash
 npx convex dev    # ターミナル 1: Convex バックエンド
@@ -109,8 +119,6 @@ pnpm dev          # ターミナル 2: Next.js
 ```
 
 [http://localhost:3000](http://localhost:3000) を開く。Google またはメール OTP でサインイン。
-
-必須の環境変数: `NEXT_PUBLIC_CONVEX_URL`, `CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `AI_GATEWAY_API_KEY`, `AUTH_EMAIL_FROM`。詳細は`.env.example`を参照。
 
 ## プロジェクト構造
 

@@ -99,9 +99,19 @@ While the demand for multi-model AI chat interfaces is high, existing solutions 
 git clone <repository-url>
 cd c-chat
 pnpm install
+cp .env.example .env.local
 ```
 
-Copy `.env.example` to `.env.local`, fill in the required values, then:
+Fill in `.env.local`. Where to get each value:
+
+| Variable | Source |
+|----------|--------|
+| `NEXT_PUBLIC_CONVEX_URL`, `CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_SITE_URL` | Run `npx convex dev` once – it creates a Convex project and writes these to `.env.local`. Or copy from [dashboard.convex.dev](https://dashboard.convex.dev) → your deployment → Settings. |
+| `NEXT_PUBLIC_SITE_URL` | Your app URL. Use `http://localhost:3000` for local dev. |
+| `AI_GATEWAY_API_KEY` | [Vercel dashboard](https://vercel.com) → AI Gateway → API Keys → Create key. |
+| `AUTH_EMAIL_FROM` | [Resend](https://resend.com) – verified sender address (e.g. `noreply@yourdomain.com`). Required for email OTP sign-in. |
+
+Then run:
 
 ```bash
 npx convex dev    # terminal 1: Convex backend
@@ -109,8 +119,6 @@ pnpm dev          # terminal 2: Next.js
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Sign in with Google or email OTP.
-
-Required env vars: `NEXT_PUBLIC_CONVEX_URL`, `CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `AI_GATEWAY_API_KEY`, `AUTH_EMAIL_FROM`. See `.env.example`.
 
 ## Project Structure
 
